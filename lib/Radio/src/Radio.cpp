@@ -28,6 +28,10 @@ void Radio::init() {
   // to define event use lambda and references
   // http://stackoverflow.com/questions/39803135/c-unresolved-overloaded-function-type
   // http://stackoverflow.com/questions/4940259/lambdas-require-capturing-this-to-call-static-member-function
+
+  // Motors of robota to mov
+  Motion motors;
+
   webSocket.onEvent([&](uint8_t num, WStype_t type, uint8_t * payload, size_t lenght){
 
     String stringWS;
@@ -65,7 +69,7 @@ void Radio::init() {
             // TODO comprobar que llega commands
             const char* commands = rxWS["commands"];
             Serial.println(commands);
-        /*     for (i = 0; i < strlen((const char *)(commands)); i++) {
+             for (i = 0; i < strlen((const char *)(commands)); i++) {
                Serial.println((char)commands[i]);
                // action for different commands
                switch ((char)commands[i]) {
@@ -88,7 +92,7 @@ void Radio::init() {
               }
             } // loop evry commands
             // stop robota anyway after executing
-            motors.stop();*/
+            motors.stop();
             break;
     } // switch type of WS
 

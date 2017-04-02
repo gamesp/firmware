@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <WebSocketsServer.h>
+#include "Motion.h"
 
 class Radio
 {

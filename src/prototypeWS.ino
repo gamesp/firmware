@@ -27,15 +27,14 @@
 #include <Hash.h>
 
 #include "Config.h"
-#include "Motion.h"
+
 #include "Radio.h"
 
 WiFiManager wifiManager;
 
 // connection with websocket
 Radio radio;
-// Motors of robota to mov
-Motion motors;
+
 
 void configModeCallback(WiFiManager *myWiFiManager){
   if (DEBUG) {
