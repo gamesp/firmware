@@ -22,19 +22,15 @@
 #include <WiFiClient.h>
 #include <ESP8266mDNS.h>
 #include <WiFiManager.h>
-
-#include <ArduinoJson.h>
 #include <Hash.h>
 
 #include "Config.h"
-
 #include "Radio.h"
 
 WiFiManager wifiManager;
 
 // connection with websocket
 Radio radio;
-
 
 void configModeCallback(WiFiManager *myWiFiManager){
   if (DEBUG) {
@@ -95,26 +91,15 @@ long lastMsg = millis();
 int value = 0;
 
 void loop() {
-    String msg, JSONtoString;
-    radio.wsloop();
-
-    long now = millis();
-    if (now - lastMsg > 5000) {
-      // Memory pool for JSON object tree.
-      StaticJsonBuffer<200> keepjsonBuffer;
-      JsonObject& keepJSON = keepjsonBuffer.createObject();
-      lastMsg = now;
-      ++value;
-      msg = "ON ";
-      msg += value;
-      keepJSON["idRobota"] = idRobota;
-      keepJSON["state"] = msg;
-      // convert object JSON to string
-      keepJSON.printTo(JSONtoString);
-      Serial.println(JSONtoString);
-      // keep alive, server to everybody
-      radio.wsbroadcast(JSONtoString);
-      //reset because priontTo add
-      JSONtoString="";
-    }
+  String msg;
+  radio.wsloop();
+  long now = millis();
+  if (now - lastMsg > 5000) {
+    lastMsg = now;
+    ++value;
+    msg = "ON ";
+    msg += value;
+    // keep alive, server to everybody
+    radio.wsbroadcast(msg);
+  }
 }

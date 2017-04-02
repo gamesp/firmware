@@ -6,6 +6,7 @@
 class Motion
 {
 public:
+
   /**
    * Constructor
    */
@@ -43,7 +44,23 @@ public:
      * stop robota
      */
     void stop();
-protected:
+    //movement X axis
+    int steepX(int myCompass);
+    //movement Y axis
+    int steepY(int myCompass);
+    // get private
+    int getX();
+    int getY();
+    char getCardinal();
+private:
+  //actual position on the board
+  //init my position, right inf corner
+  int _myPosition[2];
+  // index of the cardinal point of my compass
+  int _myCompass;
+  //cardinal points
+  const char _cardinal[4] = {'N','E','S','W'};
+  //String _commands = "SFLBR";
 
 };
 
