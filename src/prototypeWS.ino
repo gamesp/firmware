@@ -23,105 +23,19 @@
 #include <ESP8266mDNS.h>
 #include <WiFiManager.h>
 
-#include <WebSocketsServer.h>
 #include <ArduinoJson.h>
 #include <Hash.h>
-#include <ESP8266WebServer.h>
 
+#include "Config.h"
 #include "Motion.h"
-
-// DEBUG true (1) or false (0)
-#define DEBUG 1
-#define USE_SERIAL Serial
-
-// id_connected
-#define NONET     0  // no connection
-#define MQTT      1  // there is wifi and mqtt broker connection
-#define WEBLOCAL  2  // no wifi or no mqtt broker connection
-uint8_t id_connected;
+#include "Radio.h"
 
 WiFiManager wifiManager;
 
-IPAddress apIP(192, 168, 4, 1);
-IPAddress netMsk(255, 255, 255, 0);
-// TODO concat a chip reference
-String idRobota = "alfarobota";
-
-// listen webserver at port 80
-ESP8266WebServer server = ESP8266WebServer(80);
-// listen websocket at port 81
-WebSocketsServer webSocket = WebSocketsServer(81);
-
+// connection with websocket
+Radio radio;
 // Motors of robota to mov
 Motion motors;
-
-//manage event
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
-
-    String stringWS;
-    switch(type) {
-        case WStype_DISCONNECTED:
-            Serial.printf("[%u] Disconnected!\n", num);
-            break;
-        case WStype_CONNECTED: {
-            // Memory pool for JSON object tree.
-            StaticJsonBuffer<200> jsonBuffer;
-            IPAddress ip = webSocket.remoteIP(num);
-            Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-            JsonObject& objectWS = jsonBuffer.createObject();
-            objectWS["id"] = idRobota;
-            objectWS["state"] = "Client connected";
-            objectWS.printTo(stringWS);
-            // send message to client
-            webSocket.sendTXT(num, stringWS);
-            stringWS = "";
-        }
-            break;
-        case WStype_TEXT:
-            // Memory pool for JSON object tree.
-            StaticJsonBuffer<200> rxjsonBuffer;
-            // counter for
-            int i;
-            Serial.println();
-            Serial.printf("[%u]: %s\n", num, payload);
-            // convert payload to JSON object
-            // http://arduino.stackexchange.com/questions/30209/cast-from-uint8-t-to-char-loses-precision
-            JsonObject& rxWS = rxjsonBuffer.parseObject((char *)payload);
-            if (!rxWS.success()) {
-              Serial.println("parseObject() failed");
-              return;
-            }
-            // TODO comprobar que llega commands
-            const char* commands = rxWS["commands"];
-            Serial.println(commands);
-             for (i = 0; i < strlen((const char *)(commands)); i++) {
-               Serial.println((char)commands[i]);
-               // action for different commands
-               switch ((char)commands[i]) {
-                 case 'F':
-                  motors.movForward(1);
-                  break;
-                case 'R':
-                  motors.turnRight();
-                  break;
-                case 'L':
-                  motors.turnLeft();
-                  break;
-                case 'B':
-                  motors.movBack(1);
-                  break;
-                // stop
-                case 'S':
-                  motors.stop();
-                  break;
-              }
-            } // loop evry commands
-            // stop robota anyway after executing
-            motors.stop();
-            break;
-    } // switch type of WS
-  } // webSocketEvent
-
 
 void configModeCallback(WiFiManager *myWiFiManager){
   if (DEBUG) {
@@ -131,7 +45,6 @@ void configModeCallback(WiFiManager *myWiFiManager){
     Serial.println(myWiFiManager->getConfigPortalSSID());
   }
 }
-
 
 void setup () {
   // init de serial comunication
@@ -167,14 +80,8 @@ void setup () {
       WiFi.softAP("AlfaRobota");
       WiFi.softAPConfig(apIP, apIP, netMsk);
       delay(100);
-      // start webSocket server
-      webSocket.begin();
-      webSocket.onEvent(webSocketEvent);
-      // start webServer
-      server.on("/", HTTP_GET, [](){
-      server.send(200, "text/html", "<h1>ESP8266 Web Server</h1>");
-        });
-      server.begin();
+      // init websocket server
+      radio.init();
       // Add service to MDNS
       MDNS.addService("http", "tcp", 80);
       MDNS.addService("ws", "tcp", 81);
@@ -190,8 +97,8 @@ int value = 0;
 
 void loop() {
     String msg, JSONtoString;
-    webSocket.loop();
-    server.handleClient();
+    radio.wsloop();
+
     long now = millis();
     if (now - lastMsg > 5000) {
       // Memory pool for JSON object tree.
@@ -207,7 +114,7 @@ void loop() {
       keepJSON.printTo(JSONtoString);
       Serial.println(JSONtoString);
       // keep alive, server to everybody
-      webSocket.broadcastTXT(JSONtoString);
+      radio.wsbroadcast(JSONtoString);
       //reset because priontTo add
       JSONtoString="";
     }
