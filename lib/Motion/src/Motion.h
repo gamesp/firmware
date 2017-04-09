@@ -2,6 +2,9 @@
 #define _MOTION_H
 
 #include <stdint.h>
+#include "Gear.h"
+
+#define HOWMANYLOOPS 1 //how far does robota go, 1 to debug
 
 class Motion
 {
@@ -52,6 +55,8 @@ public:
     int getX();
     int getY();
     char getCardinal();
+    // to dend i2c
+    Gear gear;
 private:
   //actual position on the board
   //init my position, right inf corner

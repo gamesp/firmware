@@ -31,6 +31,7 @@ void Motion::movForward(int8_t squares){
     _myPosition[0] = _myPosition[0] + steepX(_myCompass);
     // Y position
     _myPosition[1] = _myPosition[1] + steepY(_myCompass);
+    gear.i2c('F',HOWMANYLOOPS);
   }
   else {
     Serial.println("Go Back");
@@ -38,6 +39,7 @@ void Motion::movForward(int8_t squares){
     _myPosition[0] = _myPosition[0] - steepX(_myCompass);
     // Y position
     _myPosition[1] = _myPosition[1] - steepY(_myCompass);
+    gear.i2c('B',HOWMANYLOOPS);
   }
 }
 
@@ -51,6 +53,7 @@ void Motion::turn(bool rightHanded){
     } else {
       _myCompass = _myCompass + 1;
     }
+    gear.i2c('R',HOWMANYLOOPS);
   }
   else {
     Serial.println("Turn LEFT");
@@ -61,11 +64,13 @@ void Motion::turn(bool rightHanded){
     } else {
       _myCompass = _myCompass - 1;
     }
-}
+    gear.i2c('L',HOWMANYLOOPS);
+  }
 }
 
 void Motion::stop(){
   Serial.println("STOP");
+  gear.i2c('S',1);
 }
 /**
  * movement X axis

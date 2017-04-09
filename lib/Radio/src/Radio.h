@@ -1,11 +1,22 @@
 #ifndef _RADIO_H
 #define _RADIO_H
 
+#include <Arduino.h>
 #include <stdint.h>
 #include <WebSocketsServer.h>
-#include <Arduino.h>
-#include "Motion.h"
 #include <ArduinoJson.h>
+#include "Motion.h"
+#include "Multimedia.h"
+
+// state of leds
+#define ON 1  // true
+#define OFF 0 // false
+// number of the led at the strip
+#define LED_F 2
+#define LED_R 3
+#define LED_B 0
+#define LED_L 1
+#define LED_S 5
 
 class Radio {
   public:
@@ -22,6 +33,8 @@ class Radio {
      WebSocketsServer webSocket = WebSocketsServer(81);
      // Motors of robota to mov
      Motion motors;
+     // Sound and lights
+     Multimedia multimedia;
 };
 
 #endif // _RADIO_H

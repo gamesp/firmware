@@ -35,6 +35,17 @@ void Radio::init() {
         case WStype_CONNECTED: {
             // send message to client
             Radio::wssend(num, "Client connected");
+            multimedia.led(LED_F,ON);
+            multimedia.led(LED_B,ON);
+            multimedia.led(LED_R,ON);
+            multimedia.led(LED_L,ON);
+            multimedia.led(LED_S,ON);
+            delay(2000);
+            multimedia.led(LED_F,OFF);
+            multimedia.led(LED_B,OFF);
+            multimedia.led(LED_R,OFF);
+            multimedia.led(LED_L,OFF);
+            multimedia.led(LED_S,OFF);
         }
             break;
         case WStype_TEXT:
@@ -55,23 +66,34 @@ void Radio::init() {
             int i;
              for (i = 0; i < strlen((const char *)(commands)); i++) {
                Serial.println((char)commands[i]);
+               // turn off the central led
+               multimedia.led(LED_S, OFF);
                // action for different commands
                switch ((char)commands[i]) {
                  case 'F':
+                  multimedia.led(LED_F, ON);
                   motors.movForward(1);
+                  multimedia.led(LED_F, OFF);
                   break;
                 case 'R':
+                  multimedia.led(LED_R, ON);
                   motors.turnRight();
+                  multimedia.led(LED_R, OFF);
                   break;
                 case 'L':
+                  multimedia.led(LED_L, ON);
                   motors.turnLeft();
+                  multimedia.led(LED_L, OFF);
                   break;
                 case 'B':
+                  multimedia.led(LED_B, ON);
                   motors.movBack(1);
+                  multimedia.led(LED_B, OFF);
                   break;
                 // stop
                 case 'S':
                   motors.stop();
+                  multimedia.led(LED_S, ON);
                   break;
               } // switch
                 wsexecuting(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());
@@ -122,7 +144,6 @@ void Radio::wssend(uint8_t num, String msg){
 }
 /**
  *  send a executing message
- NO FONCIONA LA X Y COMPASS
  */
 void Radio::wsexecuting(uint8_t num, char command, int X, int Y, char compass){
   Serial.print(X);
