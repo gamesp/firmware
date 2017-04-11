@@ -18,70 +18,35 @@
 
 #include <Arduino.h>
 
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266mDNS.h>
-#include <WiFiManager.h>
-#include <Hash.h>
-
 #include "Config.h"
+#include "WifiConnection.h"
 #include "Radio.h"
 
-WiFiManager wifiManager;
-
+// wifi Configuration
+WifiConnection wifiRobota;
 // connection with websocket
 Radio radio;
-
-void configModeCallback(WiFiManager *myWiFiManager){
-  if (DEBUG) {
-    Serial.println("Entered config mode");
-    Serial.println(WiFi.softAPIP());
-    //if you used auto generated SSID, print it
-    Serial.println(myWiFiManager->getConfigPortalSSID());
-  }
-}
 
 void setup () {
   // init de serial comunication
   Serial.begin(115200);
-  // in the begining there isn't connection
-  id_connected = NONET;
-  // reset param connection Esp8266 only for test
-  wifiManager.resetSettings();
-  // try to connect
-  wifiManager.setAPCallback(configModeCallback);
-  // only wifi with high signal
-  wifiManager.setMinimumSignalQuality(50);
-  // sets timeout until configuration portal gets turned off
-  // and active de web server
-  wifiManager.setTimeout(10);
+  // only AP
+  id_connected = WEBLOCAL;
 
-  if(!wifiManager.autoConnect("WifiDefault")) {
-    // if no wifi config
-    Serial.println("Failed to connect and hit timeout, Mode: WEBLOCAL");
-    id_connected = WEBLOCAL;
-  }
-  Serial.print("Mode: ");
-  Serial.println(id_connected);
-  Serial.print("Ip: ");
-  Serial.println(WiFi.localIP());
   switch (id_connected) {
     case MQTT:
       break;
     case NONET:
       break;
     case WEBLOCAL:
-      WiFi.mode(WIFI_AP);
-      WiFi.softAP("AlfaRobota");
-      WiFi.softAPConfig(apIP, apIP, netMsk);
-      delay(100);
+      wifiRobota.onlyAP();
       // init websocket server
       radio.init();
-      // Add service to MDNS
-      MDNS.addService("http", "tcp", 80);
-      MDNS.addService("ws", "tcp", 81);
-      Serial.println("HTTP and WebSocket servers started");
-      Serial.print("Ip: ");
+      // DEBUG
+      if (DEBUG) {
+        Serial.println("WebSocket server started");
+        Serial.print("Ip: ");
+      }
       Serial.println(WiFi.softAPIP());
       break;
   }

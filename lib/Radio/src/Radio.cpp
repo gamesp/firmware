@@ -65,7 +65,9 @@ void Radio::init() {
 
             int i;
              for (i = 0; i < strlen((const char *)(commands)); i++) {
-               Serial.println((char)commands[i]);
+               if (DEBUG) {
+                 Serial.println((char)commands[i]);
+               }
                // turn off the central led
                multimedia.led(LED_S, OFF);
                // action for different commands
@@ -146,9 +148,10 @@ void Radio::wssend(uint8_t num, String msg){
  *  send a executing message
  */
 void Radio::wsexecuting(uint8_t num, char command, int X, int Y, char compass){
-  Serial.print(X);
-  Serial.println(compass);
-
+  if (DEBUG) {
+    Serial.print("Compass:");
+    Serial.println(compass);
+  }
   String JSONtoString;
   // JSON object
   StaticJsonBuffer<200> jsonBuffer;

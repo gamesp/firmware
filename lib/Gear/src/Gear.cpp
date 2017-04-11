@@ -64,7 +64,9 @@ void Gear::i2c(char direction, int loop){
     case 'F':
       for (int i=0; i<loop; i++) {
         for (int index=0; index<4; index++){
-          Serial.println(step_patternFB[index],BIN);
+          if (DEBUG) {
+            Serial.println(step_patternFB[index],BIN);
+          }
           pcf8574.write8(step_patternFB[index]);
           delay(DELAYSTEP);
         }
@@ -74,7 +76,9 @@ void Gear::i2c(char direction, int loop){
       for (int i=0; i<loop; i++) {
         int index=3;
         do {
-          Serial.println(step_patternFB[index],BIN);
+          if (DEBUG) {
+            Serial.println(step_patternFB[index],BIN);
+          }
           pcf8574.write8(step_patternFB[index]);
           delay(DELAYSTEP);
           index--;
@@ -84,7 +88,9 @@ void Gear::i2c(char direction, int loop){
       case 'L':
       for (int i=0; i<loop; i++) {
         for (int index=0; index<4; index++){
-          Serial.println(step_patternLR[index],BIN);
+          if (DEBUG) {
+            Serial.println(step_patternLR[index],BIN);
+          }
           pcf8574.write8(step_patternLR[index]);
           delay(DELAYSTEP);
         }
@@ -94,7 +100,9 @@ void Gear::i2c(char direction, int loop){
       for (int i=0; i<loop; i++) {
         int index=3;
         do {
-          Serial.println(step_patternLR[index],BIN);
+          if (DEBUG) {
+            Serial.println(step_patternLR[index],BIN);
+          }
           pcf8574.write8(step_patternLR[index]);
           delay(DELAYSTEP);
           index--;
@@ -103,7 +111,9 @@ void Gear::i2c(char direction, int loop){
       break;
       default :
       // stop
-      Serial.println(B00000000,BIN);
+      if (DEBUG) {
+        Serial.println(B00000000,BIN);
+      }
       pcf8574.write8(0x00);
   }
 }

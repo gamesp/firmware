@@ -19,14 +19,16 @@ See LICENSE.txt for details
 #include <Arduino.h>
 
 Motion::Motion(){
-  _myPosition[0] = 9;
-  _myPosition[1] = 9;
+  _myPosition[0] = MAXCELL-1;
+  _myPosition[1] = MAXCELL-1;
   _myCompass=0;
 }
 
 void Motion::movForward(int8_t squares){
   if (squares>0) {
-    Serial.println("Go FORWARD");
+    if (DEBUG) {
+      Serial.println("Go FORWARD");
+    }
     // X position
     _myPosition[0] = _myPosition[0] + steepX(_myCompass);
     // Y position
@@ -34,7 +36,9 @@ void Motion::movForward(int8_t squares){
     gear.i2c('F',HOWMANYLOOPS);
   }
   else {
-    Serial.println("Go Back");
+    if (DEBUG) {
+      Serial.println("Go Back");
+    }
     // X position
     _myPosition[0] = _myPosition[0] - steepX(_myCompass);
     // Y position
@@ -45,7 +49,9 @@ void Motion::movForward(int8_t squares){
 
 void Motion::turn(bool rightHanded){
   if (rightHanded) {
-    Serial.println("Turn RIGHT");
+    if (DEBUG) {
+      Serial.println("Turn RIGHT");
+    }
     // change compass 90 degrees right
     if (_myCompass == 3) {
       //West to North
@@ -56,10 +62,12 @@ void Motion::turn(bool rightHanded){
     gear.i2c('R',HOWMANYLOOPS);
   }
   else {
-    Serial.println("Turn LEFT");
+    if (DEBUG) {
+      Serial.println("Turn LEFT");
+    }
     // change compass 90 degrees left
     if (_myCompass == 0) {
-      //West to North to West
+      //East to North
       _myCompass = 3;
     } else {
       _myCompass = _myCompass - 1;
@@ -69,7 +77,9 @@ void Motion::turn(bool rightHanded){
 }
 
 void Motion::stop(){
-  Serial.println("STOP");
+  if (DEBUG) {
+    Serial.println("STOP");
+  }
   gear.i2c('S',1);
 }
 /**

@@ -5,6 +5,10 @@
 #include "Gear.h"
 
 #define HOWMANYLOOPS 1 //how far does robota go, 1 to debug
+#define MAXCELL 8 //number of cells
+
+// Motion DEBUG 1 (true) 0 (false)
+#define DEBUG 1
 
 class Motion
 {

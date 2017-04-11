@@ -11,8 +11,3 @@ uint8_t id_connected;
 
 #define STATE       0  // type msg to broadcast
 #define EXECUTING   1  // msg type to send what executing
-
-IPAddress apIP(192, 168, 4, 1);
-IPAddress netMsk(255, 255, 255, 0);
-// TODO concat a chip reference
-String idRobota = "alfarobota";

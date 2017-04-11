@@ -3,6 +3,9 @@
 
 #define DELAYSTEP 200 //delay between step
 
+// Motion DEBUG 1 (true) 0 (false)
+#define DEBUG 1
+
 #include <Arduino.h>
 #include <Wire.h>
 #include <pcf8574_esp.h>
