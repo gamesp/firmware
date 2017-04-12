@@ -21,6 +21,8 @@ See LICENSE.txt for details
  * init websocket server
  */
 void Radio::init() {
+  WifiConnection wificanection;
+  _idRobota = wificanection.getSSID();
   // start webSocket server
   webSocket.begin();
   // to define event use lambda and references
@@ -122,7 +124,7 @@ void Radio::wsbroadcast(String msg){
   // JSON object
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& objectJSON = jsonBuffer.createObject();
-  objectJSON["idRobota"] = "alfarobota";
+  objectJSON["idRobota"] = _idRobota;
   objectJSON["state"] = msg;
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
@@ -138,7 +140,7 @@ void Radio::wssend(uint8_t num, String msg){
   // JSON object
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& objectJSON = jsonBuffer.createObject();
-  objectJSON["idRobota"] = "alfarobota";
+  objectJSON["idRobota"] = _idRobota;
   objectJSON["state"] = msg;
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
@@ -156,7 +158,7 @@ void Radio::wsexecuting(uint8_t num, char command, int X, int Y, char compass){
   // JSON object
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& objectJSON = jsonBuffer.createObject();
-  objectJSON["idRobota"] = "alfarobota";
+  objectJSON["idRobota"] = _idRobota;
   objectJSON["mov"] = (String)command;
   objectJSON["X"] = X;
   objectJSON["Y"] = Y;

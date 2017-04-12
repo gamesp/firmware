@@ -8,6 +8,7 @@
 #include <ArduinoJson.h>
 #include "Motion.h"
 #include "Multimedia.h"
+#include "WifiConnection.h"
 
 // Radio DEBUG 1 (true) 0 (false)
 #define DEBUG 1
@@ -39,6 +40,8 @@ class Radio {
      Motion motors;
      // Sound and lights
      Multimedia multimedia;
+   private:
+     String _idRobota;
 };
 
 #endif // _RADIO_H

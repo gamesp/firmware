@@ -37,3 +37,6 @@ void WifiConnection::onlyAP() {
   WiFi.softAP(_AP_NameString);
   delay(100);
 }
+String WifiConnection::getSSID() {
+  return _NameString;
+}

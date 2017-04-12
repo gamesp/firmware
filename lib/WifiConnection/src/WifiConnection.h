@@ -18,6 +18,10 @@ class WifiConnection {
       * ssid Robota + chip id
       */
      void onlyAP();
+     /**
+      * return ssid, the same to id of robota
+      */
+      String getSSID();
 
  private:
    String _NameString = "Robota";
