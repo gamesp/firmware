@@ -21,7 +21,7 @@
 #define LED_R 3
 #define LED_B 0
 #define LED_L 1
-#define LED_S 5
+#define LED_S 4
 
 class Radio {
   public:

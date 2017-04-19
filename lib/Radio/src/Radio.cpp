@@ -21,8 +21,8 @@ See LICENSE.txt for details
  * init websocket server
  */
 void Radio::init() {
-  WifiConnection wificanection;
-  _idRobota = wificanection.getSSID();
+  WifiConnection wificonnection;
+  _idRobota = wificonnection.getSSID();
   // start webSocket server
   webSocket.begin();
   // to define event use lambda and references
@@ -120,6 +120,7 @@ void Radio::init() {
   *  send a broadcast, before create JSON
   */
 void Radio::wsbroadcast(String msg){
+  multimedia.led(LED_S, ON);
   String JSONtoString;
   // JSON object
   StaticJsonBuffer<200> jsonBuffer;
@@ -129,6 +130,7 @@ void Radio::wsbroadcast(String msg){
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
   webSocket.broadcastTXT(JSONtoString);
+  multimedia.led(LED_S, OFF);
 }
 /**
  *  send a state
