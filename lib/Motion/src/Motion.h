@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "Gear.h"
 
-#define HOWMANYLOOPS 1 //how far does robota go, 1 to debug
+#define HOWMANYLOOPS 2 //how far does robota go, 1 to debug, 32 one revolution
 #define MAXCELL 8 //number of cells
 
 // Motion DEBUG 1 (true) 0 (false)
@@ -65,6 +65,8 @@ private:
   //actual position on the board
   //init my position, right inf corner
   int _myPosition[2];
+  // auxiliar position to check limit board
+  int _myAuxPosition[2];
   // index of the cardinal point of my compass
   int _myCompass;
   //cardinal points

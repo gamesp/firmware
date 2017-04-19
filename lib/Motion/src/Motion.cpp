@@ -21,29 +21,63 @@ See LICENSE.txt for details
 Motion::Motion(){
   _myPosition[0] = MAXCELL-1;
   _myPosition[1] = MAXCELL-1;
+  _myAuxPosition[0] = getX();
+  _myAuxPosition[1] = getY();
   _myCompass=0;
 }
 
 void Motion::movForward(int8_t squares){
+  // go Forward
   if (squares>0) {
-    if (DEBUG) {
-      Serial.println("Go FORWARD");
-    }
+    // check board limit
     // X position
-    _myPosition[0] = _myPosition[0] + steepX(_myCompass);
+    _myAuxPosition[0] = _myAuxPosition[0] + steepX(_myCompass);
     // Y position
-    _myPosition[1] = _myPosition[1] + steepY(_myCompass);
-    gear.i2c('F',HOWMANYLOOPS);
+    _myAuxPosition[1] = _myAuxPosition[1] + steepY(_myCompass);
+    if ( (_myAuxPosition[0] > MAXCELL-1) || (_myAuxPosition[1] > MAXCELL-1) || (_myAuxPosition[0] < 0) || (_myAuxPosition[1] < 0) ){
+      // out of board
+      if (DEBUG) {
+        Serial.println("OUT");
+      }
+      _myAuxPosition[0] = getX();
+      _myAuxPosition[1] = getY();
+      return;
+    } else {
+      // X position
+      _myPosition[0] = _myPosition[0] + steepX(_myCompass);
+      // Y position
+      _myPosition[1] = _myPosition[1] + steepY(_myCompass);
+      if (DEBUG) {
+        Serial.println("Go FORWARD");
+      }
+      gear.i2c('F',HOWMANYLOOPS);
+    }
   }
+  // go Backward
   else {
-    if (DEBUG) {
-      Serial.println("Go Back");
-    }
+    // check board limit
     // X position
-    _myPosition[0] = _myPosition[0] - steepX(_myCompass);
+    _myAuxPosition[0] = _myAuxPosition[0] - steepX(_myCompass);
     // Y position
-    _myPosition[1] = _myPosition[1] - steepY(_myCompass);
-    gear.i2c('B',HOWMANYLOOPS);
+    _myAuxPosition[1] = _myAuxPosition[1] - steepY(_myCompass);
+    if ( (_myAuxPosition[0] > MAXCELL-1) || (_myAuxPosition[1] > MAXCELL-1) || (_myAuxPosition[0] < 0) || (_myAuxPosition[1] < 0) ) {
+      // out of board
+      if (DEBUG) {
+        Serial.println("OUT");
+      }
+      _myAuxPosition[0] = getX();
+      _myAuxPosition[1] = getY();
+      return;
+    } else {
+      // X position
+      _myPosition[0] = _myPosition[0] - steepX(_myCompass);
+      // Y position
+      _myPosition[1] = _myPosition[1] - steepY(_myCompass);
+      if (DEBUG) {
+        Serial.println("Go Back");
+      }
+      gear.i2c('B',HOWMANYLOOPS);
+    }
   }
 }
 
