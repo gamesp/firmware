@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "Gear.h"
 
-#define HOWMANYLOOPS 2 //how far does robota go, 1 to debug, 32 one revolution
+#define HOWMANYLOOPS 128 //how far does robota go, 1 to debug, 512 one revolution
 #define MAXCELL 8 //number of cells
 
 // Motion DEBUG 1 (true) 0 (false)

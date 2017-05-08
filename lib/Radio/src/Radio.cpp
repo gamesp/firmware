@@ -21,8 +21,11 @@ See LICENSE.txt for details
  * init websocket server
  */
 void Radio::init() {
+  //define wifi parameters
   WifiConnection wificonnection;
   _idRobota = wificonnection.getSSID();
+  // stop motor reset output
+  motors.stop();
   // start webSocket server
   webSocket.begin();
   // to define event use lambda and references

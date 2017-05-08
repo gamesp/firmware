@@ -1,7 +1,8 @@
 #ifndef _GEAR_H
 #define _GEAR_H
 
-#define DELAYSTEP 200 //delay between step
+#define DELAYSTEP 5 //delay between step
+#define ADDRESS_PFC 32 //32 placa , 63 protoboard
 
 // Motion DEBUG 1 (true) 0 (false)
 #define DEBUG 1
@@ -18,10 +19,12 @@ public:
   /**
    * Send byte to pf7584 with pattern to mov bobine
    * @param direction compass position
-   * @loop how many times repeat de pattern*/
+   * @loop how many times repeat de pattern
+   */
   void i2c(char direction, int loop);
 
 private:
+  int _error;
 
 };
 
