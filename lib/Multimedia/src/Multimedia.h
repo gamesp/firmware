@@ -33,7 +33,7 @@ private:
   // array of total leds
   CRGB _leds[NUM_LEDS];
   // different colour per commands
-  CRGB _commandsColor[5] = {CRGB::Red,CRGB::Pink,CRGB::Green,CRGB::Gray,CRGB::Blue};
+  CRGB _commandsColor[5] = {CRGB::Red,CRGB::Yellow,CRGB::Green,CRGB::Orange,CRGB::Blue};
 };
 
 #endif // _MULTIMEDIA_H

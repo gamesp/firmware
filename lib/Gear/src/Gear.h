@@ -1,11 +1,11 @@
 #ifndef _GEAR_H
 #define _GEAR_H
 
-#define DELAYSTEP 5 //delay between step
+#define DELAYSTEP 2 //delay between step
 #define ADDRESS_PFC 32 //32 placa , 63 protoboard
 
 // Motion DEBUG 1 (true) 0 (false)
-#define DEBUG 1
+#define DEBUG 0
 
 #include <Arduino.h>
 #include <Wire.h>

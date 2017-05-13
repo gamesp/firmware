@@ -50,7 +50,7 @@ void Motion::movForward(int8_t squares){
       if (DEBUG) {
         Serial.println("Go FORWARD");
       }
-      gear.i2c('F',HOWMANYLOOPS);
+      gear.i2c('F',HOWMANYLOOPS_FB);
     }
   }
   // go Backward
@@ -76,7 +76,7 @@ void Motion::movForward(int8_t squares){
       if (DEBUG) {
         Serial.println("Go Back");
       }
-      gear.i2c('B',HOWMANYLOOPS);
+      gear.i2c('B',HOWMANYLOOPS_FB);
     }
   }
 }
@@ -93,7 +93,7 @@ void Motion::turn(bool rightHanded){
     } else {
       _myCompass = _myCompass + 1;
     }
-    gear.i2c('R',HOWMANYLOOPS);
+    gear.i2c('R',HOWMANYLOOPS_LR);
   }
   else {
     if (DEBUG) {
@@ -106,7 +106,7 @@ void Motion::turn(bool rightHanded){
     } else {
       _myCompass = _myCompass - 1;
     }
-    gear.i2c('L',HOWMANYLOOPS);
+    gear.i2c('L',HOWMANYLOOPS_LR);
   }
 }
 
