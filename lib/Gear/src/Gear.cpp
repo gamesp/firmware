@@ -61,8 +61,8 @@ Gear::Gear(){
 
 // send to bus i2c de pattern
 void Gear::i2c(char direction, int loop){
-  Serial.println("Error before mov:");
-  Serial.print(_error);
+  Serial.print("Error before mov:");
+  Serial.println(_error);
   switch (direction) {
     case 'F':
     for (int i=0; i<loop; i++) {
@@ -77,7 +77,7 @@ void Gear::i2c(char direction, int loop){
       } while (index>-1);
     };
       break;
-    case 'B':  
+    case 'B':
       for (int i=0; i<loop; i++) {
         for (int index=0; index<4; index++){
           if (DEBUG) {

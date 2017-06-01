@@ -33,3 +33,17 @@ void Multimedia::led(uint8_t ledNumber, uint8_t stateON) {
     FastLED.show();
   }
 }
+
+void Multimedia::turnOFF() {
+  fill_solid(_leds, 5, CRGB::Black);
+}
+
+void Multimedia::movingLEDs(CRGB color) {
+  for(int dot = 0; dot < NUM_LEDS; dot++) {
+              _leds[dot] = color;
+              FastLED.show();
+              // clear this led for the next time around the loop
+              _leds[dot] = CRGB::Black;
+              delay(100);
+          }
+}

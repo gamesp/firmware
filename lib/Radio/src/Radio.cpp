@@ -21,6 +21,8 @@ See LICENSE.txt for details
  * init websocket server
  */
 void Radio::init() {
+  //turn off all leds
+  multimedia.turnOFF();
   //define wifi parameters
   WifiConnection wificonnection;
   _idRobota = wificonnection.getSSID();
@@ -40,11 +42,10 @@ void Radio::init() {
         case WStype_CONNECTED: {
             // send message to client
             Radio::wssend(num, "Client connected");
-            multimedia.led(LED_F,ON);
-            multimedia.led(LED_B,ON);
-            multimedia.led(LED_R,ON);
-            multimedia.led(LED_L,ON);
-            multimedia.led(LED_S,ON);
+            multimedia.movingLEDs(CRGB::Green);
+            multimedia.movingLEDs(CRGB::DarkCyan);
+            multimedia.movingLEDs(CRGB::Green);
+            multimedia.movingLEDs(CRGB::DarkCyan);
             delay(2000);
             multimedia.led(LED_F,OFF);
             multimedia.led(LED_B,OFF);

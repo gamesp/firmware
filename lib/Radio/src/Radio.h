@@ -17,10 +17,10 @@
 #define ON 1  // true
 #define OFF 0 // false
 // number of the led at the strip
-#define LED_F 2
-#define LED_R 3
-#define LED_B 0
-#define LED_L 1
+#define LED_F 0
+#define LED_R 1
+#define LED_B 2
+#define LED_L 3
 #define LED_S 4
 
 class Radio {
