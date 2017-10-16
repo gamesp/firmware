@@ -21,6 +21,8 @@ See LICENSE.txt for details
  * init websocket server
  */
 void Radio::init() {
+  //prueba de sonido
+  multimedia.sos();
   //turn off all leds
   multimedia.turnOFF();
   //define wifi parameters

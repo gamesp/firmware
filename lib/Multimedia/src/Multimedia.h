@@ -15,8 +15,11 @@
 #define COLOR_ORDER GRB
 // default brightness
 #define MAX_BRIGHTNESS 16
-// GPIO=3 it's D9
-#define PIN_AUDIO 3
+
+// tones to play
+#include "Tones.h"
+// puente en la placa
+#define PIN_AUDIO D8
 
 
 class Multimedia
@@ -26,14 +29,13 @@ public:
    * Constructor
    */
   Multimedia();
-  /**
-   * turn ON or OFF the index led
-   * @param state ON or OFF
-   * @param index of the array led
-   */
   void led(uint8_t index, uint8_t state);
   void turnOFF();
   void movingLEDs(CRGB color);
+  // audio glis
+  void glis(int nota1, int nota2, int tasa);
+  // play melody ohhh
+  void sos();
 
 private:
   // array of total leds
