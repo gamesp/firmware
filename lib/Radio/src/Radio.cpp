@@ -34,6 +34,9 @@ void Radio::init() {
   webSocket.begin();
   // init screen
   multimedia.display_update(PI);
+  // play welcome
+  multimedia.buzzer_rttl(RTTL_WELCOME);
+
   // to define event use lambda and references
   // http://stackoverflow.com/questions/39803135/c-unresolved-overloaded-function-type
   // http://stackoverflow.com/questions/4940259/lambdas-require-capturing-this-to-call-static-member-function
@@ -51,7 +54,7 @@ void Radio::init() {
             multimedia.movingLEDs(CRGB::Green);
             multimedia.movingLEDs(CRGB::DarkCyan);
             multimedia.display_update(SMILE);
-            delay(500);
+            multimedia.buzzer_rttl(RTTL_FIDO);
             multimedia.led(LED_F,OFF);
             multimedia.led(LED_B,OFF);
             multimedia.led(LED_R,OFF);
@@ -89,21 +92,25 @@ void Radio::init() {
                   multimedia.display_update(1);
                   multimedia.led(LED_F, ON);
                   in = motors.movForward(1);
+                  multimedia.buzzer_beep(TONE_FREQ_UP);
                   multimedia.led(LED_F, OFF);
                   break;
                 case 'R':
                   multimedia.led(LED_R, ON);
                   motors.turnRight();
+                  multimedia.buzzer_beep(TONE_FREQ_RIGHT);
                   multimedia.led(LED_R, OFF);
                   break;
                 case 'L':
                   multimedia.led(LED_L, ON);
                   motors.turnLeft();
+                  multimedia.buzzer_beep(TONE_FREQ_LEFT);
                   multimedia.led(LED_L, OFF);
                   break;
                 case 'B':
                   multimedia.led(LED_B, ON);
                   in = motors.movBack(1);
+                  multimedia.buzzer_beep(TONE_FREQ_DOWN);
                   multimedia.led(LED_B, OFF);
                   break;
                 // stop
@@ -119,7 +126,7 @@ void Radio::init() {
               // out of board
               else {
                 multimedia.display_update(DISGUST);
-                delay(1000);
+                multimedia.buzzer_rttl(RTTL_MOSAIC);
               }
               // send coord
               wsexecuting(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());

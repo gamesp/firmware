@@ -33,17 +33,19 @@ OLEDDisplayUi ui( &display );
 
 InfoDisplay myInfo;
 
+Buzzer buzz = Buzzer(BUZZER_PIN);
+
 Multimedia::Multimedia(){
   //Initialize the rgb strip
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(_leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   FastLED.setBrightness(MAX_BRIGHTNESS);
   FastLED.clear();
-  //Init pin buzzer
-  pinMode(PIN_AUDIO, OUTPUT);
   //Init info to display
   myInfo.x = 0;
   myInfo.y = 0;
   myInfo.msg = "Up!";
+  //Init buzzer
+  buzz.init();
 }
 /**
  * turn ON or OFF the index led
@@ -161,4 +163,16 @@ void Multimedia::display_update(int x, int y, char compass) {
 void Multimedia::display_heart(bool bum) {
   myInfo.heart = bum;
   display_update();
+}
+
+void Multimedia::buzzer_beep(){
+  buzz.beep();
+}
+
+void Multimedia::buzzer_beep(uint16_t frequency) {
+  buzz.beep(frequency);
+}
+
+void Multimedia::buzzer_rttl(const char* rttl){
+  buzz.playRttl(rttl);
 }

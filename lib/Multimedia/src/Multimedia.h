@@ -6,6 +6,8 @@
 #include <SSD1306.h>
 // Include the UI lib
 #include "OLEDDisplayUi.h"
+//Buzzer library
+#include "Buzzer.h"
 
 // to use chip name D4 and not GPIO2
 #define FASTLED_ESP8266_NODEMCU_PIN_ORDER
@@ -56,6 +58,9 @@ public:
   void drawFramePI(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
   void drawFrameSmile(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
   void drawFrameDisgust(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
+  void buzzer_beep();
+  void buzzer_beep(uint16_t frequency);
+  void buzzer_rttl(const char* rttl);
 
 private:
   // array of total leds
