@@ -26,7 +26,7 @@ Motion::Motion(){
   _myCompass=0;
 }
 
-void Motion::movForward(int8_t squares){
+bool Motion::movForward(int8_t squares){
   // go Forward
   if (squares>0) {
     // check board limit
@@ -41,7 +41,7 @@ void Motion::movForward(int8_t squares){
       }
       _myAuxPosition[0] = getX();
       _myAuxPosition[1] = getY();
-      return;
+      return false;
     } else {
       // X position
       _myPosition[0] = _myPosition[0] + steepX(_myCompass);
@@ -52,6 +52,7 @@ void Motion::movForward(int8_t squares){
       }
       gear.i2c('F',HOWMANYLOOPS_FB);
     }
+    return true;
   }
   // go Backward
   else {
@@ -67,7 +68,7 @@ void Motion::movForward(int8_t squares){
       }
       _myAuxPosition[0] = getX();
       _myAuxPosition[1] = getY();
-      return;
+      return false;
     } else {
       // X position
       _myPosition[0] = _myPosition[0] - steepX(_myCompass);
@@ -78,6 +79,7 @@ void Motion::movForward(int8_t squares){
       }
       gear.i2c('B',HOWMANYLOOPS_FB);
     }
+    return true;
   }
 }
 

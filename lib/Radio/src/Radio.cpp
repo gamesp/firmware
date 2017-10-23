@@ -21,8 +21,8 @@ See LICENSE.txt for details
  * init websocket server
  */
 void Radio::init() {
-  //prueba de sonido
-  multimedia.sos();
+  //init display
+  multimedia.display_init();
   //turn off all leds
   multimedia.turnOFF();
   //define wifi parameters
@@ -32,6 +32,8 @@ void Radio::init() {
   motors.stop();
   // start webSocket server
   webSocket.begin();
+  // init screen
+  multimedia.display_update(PI);
   // to define event use lambda and references
   // http://stackoverflow.com/questions/39803135/c-unresolved-overloaded-function-type
   // http://stackoverflow.com/questions/4940259/lambdas-require-capturing-this-to-call-static-member-function
@@ -48,7 +50,8 @@ void Radio::init() {
             multimedia.movingLEDs(CRGB::DarkCyan);
             multimedia.movingLEDs(CRGB::Green);
             multimedia.movingLEDs(CRGB::DarkCyan);
-            delay(2000);
+            multimedia.display_update(SMILE);
+            delay(500);
             multimedia.led(LED_F,OFF);
             multimedia.led(LED_B,OFF);
             multimedia.led(LED_R,OFF);
@@ -72,6 +75,8 @@ void Radio::init() {
             const char* commands = rxWS["commands"];
 
             int i;
+            // ¿out of board?
+            bool in;
              for (i = 0; i < strlen((const char *)(commands)); i++) {
                if (DEBUG) {
                  Serial.println((char)commands[i]);
@@ -81,8 +86,9 @@ void Radio::init() {
                // action for different commands
                switch ((char)commands[i]) {
                  case 'F':
+                  multimedia.display_update(1);
                   multimedia.led(LED_F, ON);
-                  motors.movForward(1);
+                  in = motors.movForward(1);
                   multimedia.led(LED_F, OFF);
                   break;
                 case 'R':
@@ -97,7 +103,7 @@ void Radio::init() {
                   break;
                 case 'B':
                   multimedia.led(LED_B, ON);
-                  motors.movBack(1);
+                  in = motors.movBack(1);
                   multimedia.led(LED_B, OFF);
                   break;
                 // stop
@@ -106,10 +112,21 @@ void Radio::init() {
                   multimedia.led(LED_S, ON);
                   break;
               } // switch
-                wsexecuting(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());
+              // display info
+              multimedia.display_update(motors.getX(), motors.getY(), motors.getCardinal());
+              // update display state
+              if (in) multimedia.display_update(SMILE);
+              // out of board
+              else {
+                multimedia.display_update(DISGUST);
+                delay(1000);
+              }
+              // send coord
+              wsexecuting(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());
             } // loop evry commands
             // stop robota anyway after executing
             motors.stop();
+            multimedia.display_update(WAIT);
             break;
     } // switch type of WS
 
@@ -117,16 +134,19 @@ void Radio::init() {
   });
 }
 /**
- * loop websocket server
+ * loop websocket server and update ui display
  */
  void Radio::wsloop() {
    webSocket.loop();
+   multimedia.display_update();
  }
  /**
   *  send a broadcast, before create JSON
   */
 void Radio::wsbroadcast(String msg){
   multimedia.led(LED_S, ON);
+  multimedia.display_heart(true);
+  multimedia.display_update();
   String JSONtoString;
   // JSON object
   StaticJsonBuffer<200> jsonBuffer;
@@ -137,6 +157,8 @@ void Radio::wsbroadcast(String msg){
   objectJSON.printTo(JSONtoString);
   webSocket.broadcastTXT(JSONtoString);
   multimedia.led(LED_S, OFF);
+  multimedia.display_heart(false);
+  multimedia.display_update();
 }
 /**
  *  send a state

@@ -4,12 +4,11 @@
 #define DELAYSTEP 2 //delay between step
 #define ADDRESS_PFC 32 //32 placa , 63 protoboard
 
-// Motion DEBUG 1 (true) 0 (false)
-#define DEBUG 0
-
 #include <Arduino.h>
 #include <Wire.h>
 #include <pcf8574_esp.h>
+
+#define DEBUG 0
 
 class Gear
 {

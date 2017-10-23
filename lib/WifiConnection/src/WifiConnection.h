@@ -4,7 +4,6 @@
 #include <ESP8266WiFi.h>
 #include <stdint.h>
 
-// Connection DEBUG 1 (true) 0 (false)
 #define DEBUG 1
 
 class WifiConnection {

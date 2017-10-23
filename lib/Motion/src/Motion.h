@@ -8,8 +8,6 @@
 #define HOWMANYLOOPS_LR 132 // right and left 90º
 #define MAXCELL 6 //number of cells
 
-// Motion DEBUG 1 (true) 0 (false)
-#define DEBUG 0
 
 class Motion
 {
@@ -22,18 +20,20 @@ public:
    /**
     * forward movement squares
     * @param squares Amount of squares on board. Negative go back
+    * return true if it was movement, false if outboard
     */
-    void movForward(int8_t squares);
+    bool movForward(int8_t squares);
     /**
      * back movement squares
      * @param squares Amount of squares on board
      */
-    void movBack(int8_t squares){
-      movForward(-squares);
+    bool movBack(int8_t squares){
+      return movForward(-squares);
     }
     /**
      * turn right-handed if param true or left-handed if param false
      * @param rightHanded if true turn right, if false turn left
+     * return true if it was movement, false if outboard
      */
     void turn(bool rightHanded);
     /**
