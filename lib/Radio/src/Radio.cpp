@@ -89,7 +89,6 @@ void Radio::init() {
                // action for different commands
                switch ((char)commands[i]) {
                  case 'F':
-                  multimedia.display_update(1);
                   multimedia.led(LED_F, ON);
                   in = motors.movForward(1);
                   multimedia.buzzer_beep(TONE_FREQ_UP);
@@ -97,12 +96,14 @@ void Radio::init() {
                   break;
                 case 'R':
                   multimedia.led(LED_R, ON);
+                  in = true;
                   motors.turnRight();
                   multimedia.buzzer_beep(TONE_FREQ_RIGHT);
                   multimedia.led(LED_R, OFF);
                   break;
                 case 'L':
                   multimedia.led(LED_L, ON);
+                  in = true;
                   motors.turnLeft();
                   multimedia.buzzer_beep(TONE_FREQ_LEFT);
                   multimedia.led(LED_L, OFF);
