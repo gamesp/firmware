@@ -21,6 +21,8 @@ See LICENSE.txt for details
  * init websocket server
  */
 void Radio::init() {
+  // stop motor reset output
+  motors.stop();
   //init display
   multimedia.display_init();
   //turn off all leds
@@ -28,8 +30,6 @@ void Radio::init() {
   //define wifi parameters
   WifiConnection wificonnection;
   _idRobota = wificonnection.getSSID();
-  // stop motor reset output
-  motors.stop();
   // start webSocket server
   webSocket.begin();
   // init screen
@@ -45,22 +45,22 @@ void Radio::init() {
     switch(type) {
         case WStype_DISCONNECTED:
             Serial.printf("[%u] Disconnected!\n", num);
+            multimedia.display_update(PI);
             break;
-        case WStype_CONNECTED: {
+        case WStype_CONNECTED:
             // send message to client
             Radio::wssend(num, "Client connected");
-            multimedia.movingLEDs(CRGB::Green);
-            multimedia.movingLEDs(CRGB::DarkCyan);
-            multimedia.movingLEDs(CRGB::Green);
-            multimedia.movingLEDs(CRGB::DarkCyan);
             multimedia.display_update(SMILE);
+            multimedia.movingLEDs(CRGB::Green);
+            multimedia.movingLEDs(CRGB::DarkCyan);
+            //multimedia.movingLEDs(CRGB::Green);
+            //multimedia.movingLEDs(CRGB::DarkCyan);
             multimedia.buzzer_rttl(RTTL_FIDO);
             multimedia.led(LED_F,OFF);
             multimedia.led(LED_B,OFF);
             multimedia.led(LED_R,OFF);
             multimedia.led(LED_L,OFF);
             multimedia.led(LED_S,OFF);
-        }
             break;
         case WStype_TEXT:
             // Memory pool for JSON object tree.
