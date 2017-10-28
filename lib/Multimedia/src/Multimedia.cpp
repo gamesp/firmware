@@ -40,6 +40,7 @@ Multimedia::Multimedia(){
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(_leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   FastLED.setBrightness(MAX_BRIGHTNESS);
   FastLED.clear();
+
   //Init info to display
   myInfo.x = 0;
   myInfo.y = 0;
@@ -66,6 +67,9 @@ void Multimedia::led(uint8_t ledNumber, uint8_t stateON) {
  */
 void Multimedia::turnOFF() {
   fill_solid(_leds, 5, CRGB::Black);
+  FastLED.show();
+  // blue led off
+  digitalWrite(D4, HIGH);
 }
 /**
  * move leds

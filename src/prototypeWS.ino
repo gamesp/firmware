@@ -30,6 +30,9 @@ Radio radio;
 void setup () {
   // init de serial comunication
   Serial.begin(115200);
+  //built in led and blue led
+  pinMode(LED_BUILTIN,OUTPUT);
+  pinMode(D4,OUTPUT);
   // only AP
   id_connected = WEBLOCAL;
 
