@@ -45,6 +45,8 @@ void Radio::init() {
   // http://stackoverflow.com/questions/4940259/lambdas-require-capturing-this-to-call-static-member-function
   webSocket.onEvent([&](uint8_t num, WStype_t type, uint8_t * payload, size_t lenght){
     String stringWS;
+    const char* commands;
+    const char* ud;
     switch(type) {
         case WStype_DISCONNECTED:
             if(DEBUG_R) {
@@ -82,69 +84,80 @@ void Radio::init() {
               return;
             }
             // TODO comprobar que llega commands
-            const char* commands = rxWS["commands"];
-
-            int i;
-            // ¿out of board?
-            bool in;
-             for (i = 0; i < strlen((const char *)(commands)); i++) {
-               if (DEBUG_R) {
-                 Serial.println((char)commands[i]);
-               }
-               // turn off the central led
-               multimedia.led(LED_S, OFF);
-               //Happy because execute command
-               multimedia.display_update(SMILE);
-               // action for different commands
-               switch ((char)commands[i]) {
-                 case 'F':
-                  multimedia.led(LED_F, ON);
-                  in = motors.movForward(1);
-                  multimedia.buzzer_beep(TONE_FREQ_UP);
-                  multimedia.led(LED_F, OFF);
-                  break;
-                case 'R':
-                  multimedia.led(LED_R, ON);
-                  motors.turnRight();
-                  multimedia.buzzer_beep(TONE_FREQ_RIGHT);
-                  multimedia.led(LED_R, OFF);
-                  break;
-                case 'L':
-                  multimedia.led(LED_L, ON);
-                  motors.turnLeft();
-                  multimedia.buzzer_beep(TONE_FREQ_LEFT);
-                  multimedia.led(LED_L, OFF);
-                  break;
-                case 'B':
-                  multimedia.led(LED_B, ON);
-                  in = motors.movBack(1);
-                  multimedia.buzzer_beep(TONE_FREQ_DOWN);
-                  multimedia.led(LED_B, OFF);
-                  break;
-                // stop
-                case 'S':
-                  motors.stop();
-                  multimedia.led(LED_S, ON);
-                  break;
-              } // switch
-              // display info
-              multimedia.display_update(motors.getX(), motors.getY(), motors.getCardinal());
-              // update display state
-              if (!in) {
-                multimedia.display_update(DISGUST);
-                multimedia.buzzer_rttl(RTTL_MOSAIC);
-              }
-              // send coord
-              wsexecuting(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());
-            } // loop evry commands
-            // stop robota anyway after executing
-            motors.stop();
-            multimedia.display_update(WAIT);
+            commands = rxWS["commands"];
+            ud = rxWS["UD"];
+            if (DEBUG_R) {
+              Serial.println();
+              Serial.printf("[commands]:%s:\n", commands);
+              Serial.printf("[ud]:%s:\n", commands);
+            }
+            if (ud!=NULL) Radio::changeUD(num,ud);
+            if (commands!=NULL) Radio::executCommands(num,commands);
             break;
     } // switch type of WS
-
-
   });
+}
+
+void Radio::changeUD(uint8_t num, const char* ud){
+  multimedia.display_ud((String)ud);
+}
+
+void Radio::executCommands(uint8_t num, const char* commands){
+  // ¿out of board?
+  bool in;
+  for (int i = 0; i < strlen((const char *)(commands)); i++) {
+     if (DEBUG_R) {
+       Serial.println((char)commands[i]);
+     }
+     // turn off the central led
+     multimedia.led(LED_S, OFF);
+     //Happy because execute command
+     multimedia.display_update(SMILE);
+     // action for different commands
+     switch ((char)commands[i]) {
+       case 'F':
+        multimedia.led(LED_F, ON);
+        in = motors.movForward(1);
+        multimedia.buzzer_beep(TONE_FREQ_UP);
+        multimedia.led(LED_F, OFF);
+        break;
+      case 'R':
+        multimedia.led(LED_R, ON);
+        motors.turnRight();
+        multimedia.buzzer_beep(TONE_FREQ_RIGHT);
+        multimedia.led(LED_R, OFF);
+        break;
+      case 'L':
+        multimedia.led(LED_L, ON);
+        motors.turnLeft();
+        multimedia.buzzer_beep(TONE_FREQ_LEFT);
+        multimedia.led(LED_L, OFF);
+        break;
+      case 'B':
+        multimedia.led(LED_B, ON);
+        in = motors.movBack(1);
+        multimedia.buzzer_beep(TONE_FREQ_DOWN);
+        multimedia.led(LED_B, OFF);
+        break;
+      // stop
+      case 'S':
+        motors.stop();
+        multimedia.led(LED_S, ON);
+        break;
+    } // switch
+    // display info
+    multimedia.display_update(motors.getX(), motors.getY(), motors.getCardinal());
+    // update display state
+    if (!in) {
+      multimedia.display_update(DISGUST);
+      multimedia.buzzer_rttl(RTTL_MOSAIC);
+    }
+    // send coord
+    wsexecuting(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());
+  } // loop evry commands
+  // stop robota anyway after executing
+  motors.stop();
+  multimedia.display_update(WAIT);
 }
 /**
  * loop websocket server and update ui display

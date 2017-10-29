@@ -34,6 +34,7 @@ typedef struct _InfoDisplay {
   int x=0;
   int y=0;
   char compass='N';
+  String ud="X";
   String msg="";
   uint8_t state=0;
   bool heart = false;
@@ -53,6 +54,7 @@ public:
   void display_update();
   void display_update(uint8_t state);
   void display_update(int x, int y, char compass);
+  void display_ud(String ud);
   void display_heart(bool bum);
   void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state);
   void drawFramePI(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);

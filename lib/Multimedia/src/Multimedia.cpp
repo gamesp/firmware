@@ -47,6 +47,7 @@ Multimedia::Multimedia(){
   //Init info to display
   myInfo.x = 0;
   myInfo.y = 0;
+  myInfo.ud = "X";
   myInfo.msg = "Up!";
   //Init buzzer
   buzz.init();
@@ -88,9 +89,12 @@ void Multimedia::movingLEDs(CRGB color) {
 }
 
 void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
-  display->setTextAlignment(TEXT_ALIGN_RIGHT);
   display->setFont(ArialMT_Plain_10);
-  String coord;
+  String coord, ud;
+  ud = "UD:";
+  ud.concat(myInfo.ud);
+  display->setTextAlignment(TEXT_ALIGN_LEFT);
+  display->drawString(0, 0, ud);
   coord = "[";
   coord.concat(myInfo.x);
   coord.concat(",");
@@ -98,6 +102,7 @@ void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
   coord.concat(",");
   coord.concat(myInfo.compass);
   coord.concat("]");
+  display->setTextAlignment(TEXT_ALIGN_RIGHT);
   display->drawString(128, 0, coord);
   display->drawXbm(110, 40, heart_width, heart_height, heart_bits);
   if (myInfo.heart) display->drawXbm(110, 40, heartbum_width, heartbum_height, heartbum_bits);
@@ -166,6 +171,12 @@ void Multimedia::display_update(int x, int y, char compass) {
   myInfo.x = x;
   myInfo.y = y;
   myInfo.compass = compass;
+  display_update();
+}
+
+void Multimedia::display_ud(String ud) {
+  //update ud
+  myInfo.ud = ud;
   display_update();
 }
 
