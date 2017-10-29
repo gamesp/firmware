@@ -152,8 +152,6 @@ void Radio::init() {
   *  send a broadcast, before create JSON
   */
 void Radio::wsbroadcast(String msg){
-  //multimedia.led(LED_S, ON);
-  digitalWrite(LED_BUILTIN,LOW);
   multimedia.display_heart(true);
   multimedia.display_update();
   String JSONtoString;
@@ -165,10 +163,6 @@ void Radio::wsbroadcast(String msg){
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
   webSocket.broadcastTXT(JSONtoString);
-  //multimedia.led(LED_S, OFF);
-  // both blue leds off
-  digitalWrite(LED_BUILTIN,HIGH);
-  digitalWrite(D4, HIGH);
   multimedia.display_heart(false);
   multimedia.display_update();
 }

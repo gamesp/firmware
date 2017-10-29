@@ -166,6 +166,14 @@ void Multimedia::display_update(int x, int y, char compass) {
 
 void Multimedia::display_heart(bool bum) {
   myInfo.heart = bum;
+  if (bum) {
+    //multimedia.led(LED_S, ON);
+    digitalWrite(LED_BUILTIN,LOW);    
+  } else {
+    // both blue leds off
+    digitalWrite(LED_BUILTIN,HIGH);
+    digitalWrite(D4, HIGH);
+  }
   display_update();
 }
 
