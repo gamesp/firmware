@@ -25,6 +25,9 @@ See LICENSE.txt for details
 #include "heart.h"
 #include "heartbum.h"
 
+// Debug multimedia
+#define DEBUG_MU 1
+
 // display
 // Initialize the OLED display using Wire library
 // D1 - D2 ; SLC - SDA
@@ -152,8 +155,10 @@ void Multimedia::display_update(uint8_t state) {
   //update state
   myInfo.state = state;
   ui.switchToFrame(state);
-  Serial.print("State:");
-  Serial.println(ui.getUiState()->currentFrame);
+  if (DEBUG_MU) {
+    Serial.print("State(current frame):");
+    Serial.println(ui.getUiState()->currentFrame);
+  }
   display_update();
 }
 void Multimedia::display_update(int x, int y, char compass) {
@@ -168,7 +173,7 @@ void Multimedia::display_heart(bool bum) {
   myInfo.heart = bum;
   if (bum) {
     //multimedia.led(LED_S, ON);
-    digitalWrite(LED_BUILTIN,LOW);    
+    digitalWrite(LED_BUILTIN,LOW);
   } else {
     // both blue leds off
     digitalWrite(LED_BUILTIN,HIGH);

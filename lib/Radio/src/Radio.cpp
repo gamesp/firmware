@@ -17,6 +17,9 @@ See LICENSE.txt for details
 
 #include "Radio.h"
 
+// Debug Radio
+#define DEBUG_R 1
+
 /**
  * init websocket server
  */
@@ -33,7 +36,7 @@ void Radio::init() {
   // start webSocket server
   webSocket.begin();
   // init screen
-  multimedia.display_update(PI);
+  multimedia.display_update(PI_);
   // play welcome
   multimedia.buzzer_rttl(RTTL_WELCOME);
 
@@ -44,8 +47,10 @@ void Radio::init() {
     String stringWS;
     switch(type) {
         case WStype_DISCONNECTED:
-            Serial.printf("[%u] Disconnected!\n", num);
-            multimedia.display_update(PI);
+            if(DEBUG_R) {
+              Serial.printf("[%u] Disconnected!\n", num);
+            }
+            multimedia.display_update(PI_);
             break;
         case WStype_CONNECTED:
             // send message to client
@@ -65,8 +70,10 @@ void Radio::init() {
         case WStype_TEXT:
             // Memory pool for JSON object tree.
             StaticJsonBuffer<200> rxjsonBuffer;
-            Serial.println();
-            Serial.printf("[%u]: %s\n", num, payload);
+            if (DEBUG_R) {
+              Serial.println();
+              Serial.printf("[%u]: %s\n", num, payload);
+            }
             // convert payload to JSON object
             // http://arduino.stackexchange.com/questions/30209/cast-from-uint8-t-to-char-loses-precision
             JsonObject& rxWS = rxjsonBuffer.parseObject((char *)payload);
@@ -81,11 +88,13 @@ void Radio::init() {
             // ¿out of board?
             bool in;
              for (i = 0; i < strlen((const char *)(commands)); i++) {
-               if (DEBUG) {
+               if (DEBUG_R) {
                  Serial.println((char)commands[i]);
                }
                // turn off the central led
                multimedia.led(LED_S, OFF);
+               //Happy because execute command
+               multimedia.display_update(SMILE);
                // action for different commands
                switch ((char)commands[i]) {
                  case 'F':
@@ -96,14 +105,12 @@ void Radio::init() {
                   break;
                 case 'R':
                   multimedia.led(LED_R, ON);
-                  in = true;
                   motors.turnRight();
                   multimedia.buzzer_beep(TONE_FREQ_RIGHT);
                   multimedia.led(LED_R, OFF);
                   break;
                 case 'L':
                   multimedia.led(LED_L, ON);
-                  in = true;
                   motors.turnLeft();
                   multimedia.buzzer_beep(TONE_FREQ_LEFT);
                   multimedia.led(LED_L, OFF);
@@ -123,9 +130,7 @@ void Radio::init() {
               // display info
               multimedia.display_update(motors.getX(), motors.getY(), motors.getCardinal());
               // update display state
-              if (in) multimedia.display_update(SMILE);
-              // out of board
-              else {
+              if (!in) {
                 multimedia.display_update(DISGUST);
                 multimedia.buzzer_rttl(RTTL_MOSAIC);
               }
@@ -186,7 +191,7 @@ void Radio::wssend(uint8_t num, String msg){
  *  send a executing message
  */
 void Radio::wsexecuting(uint8_t num, char command, int X, int Y, char compass){
-  if (DEBUG) {
+  if (DEBUG_R) {
     Serial.print("Compass:");
     Serial.println(compass);
   }

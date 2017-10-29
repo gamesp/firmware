@@ -18,6 +18,9 @@ See LICENSE.txt for details
 #include "Motion.h"
 #include <Arduino.h>
 
+// Debug motion function
+#define DEBUG_MO 1
+
 Motion::Motion(){
   _myPosition[0] = MAXCELL-1;
   _myPosition[1] = MAXCELL-1;
@@ -36,7 +39,7 @@ bool Motion::movForward(int8_t squares){
     _myAuxPosition[1] = _myAuxPosition[1] + steepY(_myCompass);
     if ( (_myAuxPosition[0] > MAXCELL-1) || (_myAuxPosition[1] > MAXCELL-1) || (_myAuxPosition[0] < 0) || (_myAuxPosition[1] < 0) ){
       // out of board
-      if (DEBUG) {
+      if (DEBUG_MO) {
         Serial.println("OUT");
       }
       _myAuxPosition[0] = getX();
@@ -47,7 +50,7 @@ bool Motion::movForward(int8_t squares){
       _myPosition[0] = _myPosition[0] + steepX(_myCompass);
       // Y position
       _myPosition[1] = _myPosition[1] + steepY(_myCompass);
-      if (DEBUG) {
+      if (DEBUG_MO) {
         Serial.println("Go FORWARD");
       }
       gear.i2c('F',HOWMANYLOOPS_FB);
@@ -63,7 +66,7 @@ bool Motion::movForward(int8_t squares){
     _myAuxPosition[1] = _myAuxPosition[1] - steepY(_myCompass);
     if ( (_myAuxPosition[0] > MAXCELL-1) || (_myAuxPosition[1] > MAXCELL-1) || (_myAuxPosition[0] < 0) || (_myAuxPosition[1] < 0) ) {
       // out of board
-      if (DEBUG) {
+      if (DEBUG_MO) {
         Serial.println("OUT");
       }
       _myAuxPosition[0] = getX();
@@ -74,7 +77,7 @@ bool Motion::movForward(int8_t squares){
       _myPosition[0] = _myPosition[0] - steepX(_myCompass);
       // Y position
       _myPosition[1] = _myPosition[1] - steepY(_myCompass);
-      if (DEBUG) {
+      if (DEBUG_MO) {
         Serial.println("Go Back");
       }
       gear.i2c('B',HOWMANYLOOPS_FB);
@@ -85,7 +88,7 @@ bool Motion::movForward(int8_t squares){
 
 void Motion::turn(bool rightHanded){
   if (rightHanded) {
-    if (DEBUG) {
+    if (DEBUG_MO) {
       Serial.println("Turn RIGHT");
     }
     // change compass 90 degrees right
@@ -98,7 +101,7 @@ void Motion::turn(bool rightHanded){
     gear.i2c('R',HOWMANYLOOPS_LR);
   }
   else {
-    if (DEBUG) {
+    if (DEBUG_MO) {
       Serial.println("Turn LEFT");
     }
     // change compass 90 degrees left
@@ -113,7 +116,7 @@ void Motion::turn(bool rightHanded){
 }
 
 void Motion::stop(){
-  if (DEBUG) {
+  if (DEBUG_MO) {
     Serial.println("STOP");
   }
   gear.i2c('S',1);

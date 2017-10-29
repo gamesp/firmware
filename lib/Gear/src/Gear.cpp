@@ -16,6 +16,8 @@ See LICENSE.txt for details
 */
 
 #include "Gear.h"
+// Debug Gear
+#define DEBUG_G 1
 
 /*  Wire.h already defines "Wire" which the PCF8574-class would use by default,
     but we define our own instance of it and use that instead!
@@ -61,14 +63,17 @@ Gear::Gear(){
 
 // send to bus i2c de pattern
 void Gear::i2c(char direction, int loop){
-  Serial.print("Error before mov:");
-  Serial.println(_error);
+  if (DEBUG_G) {
+    Serial.print("Error before mov:");
+    Serial.println(_error);
+  }
+
   switch (direction) {
     case 'F':
     for (int i=0; i<loop; i++) {
       int index=3;
       do {
-        if (DEBUG) {
+        if (DEBUG_G) {
           Serial.println(step_patternFB[index],BIN);
         }
         pcf8574.write8(step_patternFB[index]);
@@ -80,7 +85,7 @@ void Gear::i2c(char direction, int loop){
     case 'B':
       for (int i=0; i<loop; i++) {
         for (int index=0; index<4; index++){
-          if (DEBUG) {
+          if (DEBUG_G) {
             Serial.println(step_patternFB[index],BIN);
           }
           pcf8574.write8(step_patternFB[index]);
@@ -91,7 +96,7 @@ void Gear::i2c(char direction, int loop){
     case 'L':
       for (int i=0; i<loop; i++) {
         for (int index=0; index<4; index++){
-          if (DEBUG) {
+          if (DEBUG_G) {
             Serial.println(step_patternLR[index],BIN);
           }
           pcf8574.write8(step_patternLR[index]);
@@ -103,7 +108,7 @@ void Gear::i2c(char direction, int loop){
       for (int i=0; i<loop; i++) {
         int index=3;
         do {
-          if (DEBUG) {
+          if (DEBUG_G) {
             Serial.println(step_patternLR[index],BIN);
           }
           pcf8574.write8(step_patternLR[index]);
@@ -114,7 +119,7 @@ void Gear::i2c(char direction, int loop){
     break;
     default :
       // stop
-      if (DEBUG) {
+      if (DEBUG_G) {
         Serial.println(B00000000,BIN);
       }
       pcf8574.write8(0x00);

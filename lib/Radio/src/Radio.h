@@ -10,8 +10,6 @@
 #include "Multimedia.h"
 #include "WifiConnection.h"
 
-// Radio DEBUG 1 (true) 0 (false)
-#define DEBUG 1
 
 // state of leds
 #define ON 1  // true

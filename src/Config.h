@@ -1,7 +1,10 @@
-
-// DEBUG true (1) or false (0)
+/**
+ * General Config
+ */
+#ifndef _CONFIG_H
+#define _CONFIG_H
+// Debug in loop true (1) or false (0)
 #define DEBUG 1
-#define USE_SERIAL Serial
 
 // id_connected
 #define NONET     0  // no connection
@@ -11,3 +14,5 @@ uint8_t id_connected;
 
 #define STATE       0  // type msg to broadcast
 #define EXECUTING   1  // msg type to send what executing
+
+#endif // _CONFIG_H

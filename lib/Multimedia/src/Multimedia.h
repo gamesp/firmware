@@ -24,7 +24,7 @@
 #define MAX_BRIGHTNESS 16
 
 // the frames to display
-#define PI 0
+#define PI_ 0
 #define SMILE 1
 #define DISGUST 2
 #define WAIT 3

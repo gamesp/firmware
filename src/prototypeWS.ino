@@ -45,12 +45,6 @@ void setup () {
       wifiRobota.onlyAP();
       // init websocket server
       radio.init();
-      // DEBUG
-      if (DEBUG) {
-        Serial.println("WebSocket server started");
-        Serial.print("Ip: ");
-      }
-      Serial.println(WiFi.softAPIP());
       break;
   }
 }

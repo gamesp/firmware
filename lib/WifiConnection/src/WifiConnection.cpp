@@ -17,6 +17,8 @@ See LICENSE.txt for details
 
 #include "WifiConnection.h"
 #include <Arduino.h>
+// Debug wifi connection
+#define DEBUG_W 1
 
 /**
  * Constructor
@@ -29,12 +31,20 @@ WifiConnection::WifiConnection() {
   // convert string to const char *
   _AP_NameString = _NameString.c_str();
 };
+/**
+ * Mode AP
+ */
 void WifiConnection::onlyAP() {
-  if (DEBUG) {
+  if (DEBUG_W) {
     Serial.print("AP:");
     Serial.println(_AP_NameString);
   }
   WiFi.softAP(_AP_NameString);
+  if (DEBUG_W) {
+    Serial.println("WebSocket server started");
+    Serial.print("Ip: ");
+    WiFi.softAPIP();
+  }
   delay(100);
 }
 String WifiConnection::getSSID() {

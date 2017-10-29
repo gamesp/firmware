@@ -8,8 +8,6 @@
 #include <Wire.h>
 #include <pcf8574_esp.h>
 
-#define DEBUG 0
-
 class Gear
 {
 public:

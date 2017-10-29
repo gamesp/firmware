@@ -4,7 +4,6 @@
 #include <ESP8266WiFi.h>
 #include <stdint.h>
 
-#define DEBUG 1
 
 class WifiConnection {
   public:
