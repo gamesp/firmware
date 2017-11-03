@@ -20,6 +20,9 @@ See LICENSE.txt for details
 // Debug Radio
 #define DEBUG_R 1
 
+const char* commands;
+const char* ud;
+
 /**
  * init websocket server
  */
@@ -45,8 +48,7 @@ void Radio::init() {
   // http://stackoverflow.com/questions/4940259/lambdas-require-capturing-this-to-call-static-member-function
   webSocket.onEvent([&](uint8_t num, WStype_t type, uint8_t * payload, size_t lenght){
     String stringWS;
-    const char* commands;
-    const char* ud;
+
     switch(type) {
         case WStype_DISCONNECTED:
             if(DEBUG_R) {
@@ -83,30 +85,40 @@ void Radio::init() {
               Serial.println("parseObject() failed");
               return;
             }
-            // TODO comprobar que llega commands
+
             commands = rxWS["commands"];
             ud = rxWS["UD"];
+
             if (DEBUG_R) {
               Serial.println();
               Serial.printf("[commands]:%s:\n", commands);
-              Serial.printf("[ud]:%s:\n", commands);
+              Serial.printf("[UD]:%s:\n", ud);
+              Serial.print("[board]:");
+              Serial.println(rxWS["board"].as<String>());
             }
-            if (ud!=NULL) Radio::changeUD(num,ud);
-            if (commands!=NULL) Radio::executCommands(num,commands);
+            // Change UD and load new board
+            if (ud!=NULL) Radio::changeUD(num,ud,rxWS["board"].as<String>());
+            // Execut commands
+            if (commands!=NULL) Radio::executCommands(num,commands,rxWS["board"].as<String>());
             break;
     } // switch type of WS
   });
 }
 
-void Radio::changeUD(uint8_t num, const char* ud){
+void Radio::changeUD(uint8_t num, const char* ud, String board){
+  multimedia.set_board(board);
   multimedia.display_ud((String)ud);
+  // execute commands to update state
+  const char stop[] = "S";
+  executCommands(num, stop, board);
 }
 
-void Radio::executCommands(uint8_t num, const char* commands){
+void Radio::executCommands(uint8_t num, const char* commands, String board){
   // ¿out of board?
   bool in;
   for (int i = 0; i < strlen((const char *)(commands)); i++) {
      if (DEBUG_R) {
+       Serial.print("Executing ");
        Serial.println((char)commands[i]);
      }
      // turn off the central led
@@ -148,16 +160,59 @@ void Radio::executCommands(uint8_t num, const char* commands){
     // display info
     multimedia.display_update(motors.getX(), motors.getY(), motors.getCardinal());
     // update display state
+    // Out of board
     if (!in) {
       multimedia.display_update(DISGUST);
       multimedia.buzzer_rttl(RTTL_MOSAIC);
+    } else {
+      // check board
+      int _celda = MAXCELL*motors.getX()+motors.getY();
+      String _board = multimedia.get_board();
+      char est_celda = _board[MAXCELL*motors.getX()+motors.getY()];
+      if (DEBUG_R) {
+        Serial.print("Celda:");
+        Serial.println((MAXCELL*motors.getX()+motors.getY()));
+        Serial.print("Estado Celda:");
+        Serial.println(est_celda);
+      }
+        switch (est_celda) {
+          // P -> PI
+          case 'P':
+            multimedia.display_update(PI_);
+            multimedia.buzzer_rttl(RTTL_INTEL);
+            break;
+          // A -> nothing
+          case 'A':
+            multimedia.display_update(SMILE);
+            break;
+          // X -> wrong
+          case 'X':
+            multimedia.display_update(DISGUST);
+            multimedia.buzzer_rttl(RTTL_MOSAIC);
+            break;
+          // W -> wait
+          case 'W':
+            multimedia.display_update(WAIT);
+            break;
+          // O -> ok
+          case 'O':
+            multimedia.display_update(OK);
+            multimedia.buzzer_rttl(RTTL_FIDO);
+            break;
+          // H -> Home
+          case 'H':
+            multimedia.display_update(HOME);
+            break;
+          default:
+            multimedia.display_update(WAIT);
+        }
     }
     // send coord
     wsexecuting(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());
   } // loop evry commands
   // stop robota anyway after executing
   motors.stop();
-  multimedia.display_update(WAIT);
+  //multimedia.display_update(WAIT);
 }
 /**
  * loop websocket server and update ui display

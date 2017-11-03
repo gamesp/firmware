@@ -21,6 +21,8 @@
 #define LED_L 3
 #define LED_S 4
 
+
+
 class Radio {
   public:
     /**
@@ -32,8 +34,8 @@ class Radio {
      void wsbroadcast(String msg);
      void wssend(uint8_t num, String msg);
      void wsexecuting(uint8_t num, char command, int X, int Y, char compass);
-     void changeUD(uint8_t num, const char* ud);
-     void executCommands(uint8_t num, const char* commands);
+     void changeUD(uint8_t num, const char* ud, String board);
+     void executCommands(uint8_t num, const char* commands, String board);
      // listen websocket at port 81
      WebSocketsServer webSocket = WebSocketsServer(81);
      // Motors of robota to mov
