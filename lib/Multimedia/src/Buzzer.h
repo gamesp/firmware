@@ -19,16 +19,17 @@ See LICENSE.txt for details
 #ifndef _BUZZER_H
 #define _BUZZER_H
 
-#define RTTL_INTEL ":d=16,o=5,b=320:d,p,d,p,d,p,g,p,g,p,g,p,d,p,d,p,d,p,a,p,a,p,"
-#define RTTL_FIDO ":d=16,o=6,b=800:f,4p,f,4p,f,4p,f,4p,c,4p,c,4p,c,4p,c,"
+#define RTTL_INTEL ":d=16,o=5,b=320:d,p,d,p,d,p,g,p,g,p,g,p,d,p,d,p,d,p,a,p,a,p"
+#define RTTL_FIDO ":d=16,o=6,b=800:f,4p,f,4p,f,4p,f,4p,c,4p,c,4p,c,4p,c"
 #define RTTL_MOSAIC ":d=8,o=6,b=400:c,e,g,e,c,g,e,g,e,c"
-#define RTTL_WELCOME ":d=4,o=7,b=125:e,d#,e,d#,e,b#"
+#define RTTL_WELCOME ":d=16,o=7,b=125:e,d#,e,d#,e,b#"
 
 #define BUZZER_BEEP_FREQUENCY 4699
 #define BUZZER_BEEP_MILLIS 100
 
 // buzzer
 #define USE_BUZZER true
+// D5 not sound, D8 sound
 #define BUZZER_PIN D8
 #define PROGRAM_FINISHED_RTTL RTTL_FIDO
 #define TONE_FREQ_UP 2637
