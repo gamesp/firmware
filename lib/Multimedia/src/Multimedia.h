@@ -24,10 +24,13 @@
 #define MAX_BRIGHTNESS 16
 
 // the frames to display
-#define PI_ 0
-#define SMILE 1
-#define DISGUST 2
-#define WAIT 3
+#define PI_ 0 // cell P
+#define SMILE 1 // cell A
+#define DISGUST 2 // out of board or cell X
+#define WAIT 3 // wait a command
+#define OK 4 //cell O
+#define HOME 5 //cell H
+
 
 // info to display
 typedef struct _InfoDisplay {
@@ -38,6 +41,7 @@ typedef struct _InfoDisplay {
   String msg="";
   uint8_t state=0;
   bool heart = false;
+  String board;
 } InfoDisplay ;
 
 class Multimedia
@@ -56,13 +60,11 @@ public:
   void display_update(int x, int y, char compass);
   void display_ud(String ud);
   void display_heart(bool bum);
-  void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state);
-  void drawFramePI(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
-  void drawFrameSmile(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
-  void drawFrameDisgust(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
   void buzzer_beep();
   void buzzer_beep(uint16_t frequency);
   void buzzer_rttl(const char* rttl);
+  String get_board();
+  void set_board(String board);
 
 private:
   // array of total leds

@@ -22,6 +22,8 @@ See LICENSE.txt for details
 #include "smile.h"
 #include "disgust.h"
 #include "wait.h"
+#include "ok.h"
+#include "home.h"
 #include "heart.h"
 #include "heartbum.h"
 
@@ -34,9 +36,9 @@ See LICENSE.txt for details
 SSD1306  display(0x3c, D2, D1);
 OLEDDisplayUi ui( &display );
 
-InfoDisplay myInfo;
-
 Buzzer buzz = Buzzer(BUZZER_PIN);
+
+InfoDisplay myInfo;
 
 Multimedia::Multimedia(){
   //Initialize the rgb strip
@@ -49,6 +51,7 @@ Multimedia::Multimedia(){
   myInfo.y = 0;
   myInfo.ud = "X";
   myInfo.msg = "Up!";
+  myInfo.board = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
   //Init buzzer
   buzz.init();
 }
@@ -127,12 +130,23 @@ void drawFrameWait(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, i
   // draw an xbm image.
   display->drawXbm(32, 0, wait_width, wait_height, wait_bits);
 }
+// frame 4 - Ok
+void drawFrameOK(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+  // draw an xbm image.
+  display->drawXbm(32, 0, ok_width, ok_height, ok_bits);
+}
+// frame 5 - HOME
+void drawFrameHome(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+  // draw an xbm image.
+  display->drawXbm(32, 0, home_width, home_height, home_bits);
+}
+
 // This array keeps function pointers to all frames
 // frames are the single views that slide in
-FrameCallback frames[]={drawFramePI, drawFrameSmile, drawFrameDisgust, drawFrameWait};
+FrameCallback frames[]={drawFramePI, drawFrameSmile, drawFrameDisgust, drawFrameWait, drawFrameOK, drawFrameHome};
 
 // how many frames are there?
-int frameCount = 4;
+int frameCount = 6;
 
 // Overlays are statically drawn on top of a frame eg. a clock
 OverlayCallback overlays[]={msOverlay};
@@ -203,4 +217,12 @@ void Multimedia::buzzer_beep(uint16_t frequency) {
 
 void Multimedia::buzzer_rttl(const char* rttl){
   buzz.playRttl(rttl);
+}
+
+String Multimedia::get_board(){
+  return myInfo.board;
+}
+
+void Multimedia::set_board(String board){
+  myInfo.board = board;
 }
