@@ -31,8 +31,6 @@ void Radio::init() {
   motors.stop();
   //init display
   multimedia.display_init();
-  //turn off all leds
-  multimedia.turnOFF();
   //define wifi parameters
   WifiConnection wificonnection;
   _idRobota = wificonnection.getSSID();
@@ -42,6 +40,8 @@ void Radio::init() {
   multimedia.display_update(PI_);
   // play welcome
   multimedia.buzzer_rttl(RTTL_WELCOME);
+  //turn off all leds
+  multimedia.turnOFF();
 
   // to define event use lambda and references
   // http://stackoverflow.com/questions/39803135/c-unresolved-overloaded-function-type
@@ -106,8 +106,9 @@ void Radio::init() {
 }
 
 void Radio::changeUD(uint8_t num, const char* ud, String board){
+  String _ud = (String) ud;
   multimedia.set_board(board);
-  multimedia.display_ud((String)ud);
+  multimedia.display_ud(_ud);
   // execute commands to update state
   const char stop[] = "S";
   executCommands(num, stop, board);
@@ -121,8 +122,8 @@ void Radio::executCommands(uint8_t num, const char* commands, String board){
        Serial.print("Executing ");
        Serial.println((char)commands[i]);
      }
-     // turn off the central led
-     multimedia.led(LED_S, OFF);
+     //turn off all leds
+     multimedia.turnOFF();
      //Happy because execute command
      multimedia.display_update(SMILE);
      // action for different commands
@@ -202,6 +203,10 @@ void Radio::executCommands(uint8_t num, const char* commands, String board){
           // H -> Home
           case 'H':
             multimedia.display_update(HOME);
+            break;
+          case 'Z':
+            multimedia.display_update(SLEEP);
+            multimedia.sleep(CRGB::BlueViolet);
             break;
           default:
             multimedia.display_update(WAIT);

@@ -30,6 +30,7 @@
 #define WAIT 3 // wait a command
 #define OK 4 //cell O
 #define HOME 5 //cell H
+#define SLEEP 6 //cell H
 
 
 // info to display
@@ -54,6 +55,7 @@ public:
   void led(uint8_t index, uint8_t state);
   void turnOFF();
   void movingLEDs(CRGB color);
+  void sleep(CRGB color);
   void display_init();
   void display_update();
   void display_update(uint8_t state);

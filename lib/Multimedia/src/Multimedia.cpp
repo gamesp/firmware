@@ -24,6 +24,7 @@ See LICENSE.txt for details
 #include "wait.h"
 #include "ok.h"
 #include "home.h"
+#include "sleep.h"
 #include "heart.h"
 #include "heartbum.h"
 
@@ -83,32 +84,49 @@ void Multimedia::turnOFF() {
  */
 void Multimedia::movingLEDs(CRGB color) {
   for(int dot = 0; dot < NUM_LEDS; dot++) {
-              _leds[dot] = color;
-              FastLED.show();
-              // clear this led for the next time around the loop
-              _leds[dot] = CRGB::Black;
-              delay(100);
-          }
+    _leds[dot] = color;
+    FastLED.show();
+    // clear this led for the next time around the loop
+    _leds[dot] = CRGB::Black;
+    delay(100);
+  }
+}
+void Multimedia::sleep(CRGB color) {
+  Serial.println("Sleep");
+  // First, clear the existing led values
+  FastLED.clear();
+    /*for(int led = 0; led < NUM_LEDS; led++) {
+            _leds[led] = CRGB::Blue;
+    }*/
+    fill_solid(_leds, NUM_LEDS, CRGB::BlueViolet);
+    FastLED.setBrightness(255);
+    FastLED.show();
 }
 
 void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
-  display->setFont(ArialMT_Plain_10);
-  String coord, ud;
-  ud = "UD:";
-  ud.concat(myInfo.ud);
-  display->setTextAlignment(TEXT_ALIGN_LEFT);
-  display->drawString(0, 0, ud);
-  coord = "[";
-  coord.concat(myInfo.x);
-  coord.concat(",");
-  coord.concat(myInfo.y);
-  coord.concat(",");
-  coord.concat(myInfo.compass);
-  coord.concat("]");
-  display->setTextAlignment(TEXT_ALIGN_RIGHT);
-  display->drawString(128, 0, coord);
-  display->drawXbm(110, 40, heart_width, heart_height, heart_bits);
-  if (myInfo.heart) display->drawXbm(110, 40, heartbum_width, heartbum_height, heartbum_bits);
+  if (!myInfo.ud.equals("Zleep")){
+    display->setContrast('z');
+    display->setFont(ArialMT_Plain_10);
+    String coord, ud;
+    ud = "UD:";
+    ud.concat(myInfo.ud);
+    display->setTextAlignment(TEXT_ALIGN_LEFT);
+    display->drawString(0, 0, ud);
+    coord = "[";
+    coord.concat(myInfo.x);
+    coord.concat(",");
+    coord.concat(myInfo.y);
+    coord.concat(",");
+    coord.concat(myInfo.compass);
+    coord.concat("]");
+    display->setTextAlignment(TEXT_ALIGN_RIGHT);
+    display->drawString(128, 0, coord);
+    display->drawXbm(110, 40, heart_width, heart_height, heart_bits);
+    if (myInfo.heart) display->drawXbm(110, 40, heartbum_width, heartbum_height, heartbum_bits);
+  } else {
+    display->setContrast('0');
+  }
+
 }
 // frame 0 - PI
 void drawFramePI(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
@@ -140,13 +158,18 @@ void drawFrameHome(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, i
   // draw an xbm image.
   display->drawXbm(32, 0, home_width, home_height, home_bits);
 }
+// frame 6 - SLEEP
+void drawSleep(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+  // draw an xbm image.
+  display->drawXbm(32, 0, sleep_width, sleep_height, sleep_bits);
+}
 
 // This array keeps function pointers to all frames
 // frames are the single views that slide in
-FrameCallback frames[]={drawFramePI, drawFrameSmile, drawFrameDisgust, drawFrameWait, drawFrameOK, drawFrameHome};
+FrameCallback frames[]={drawFramePI, drawFrameSmile, drawFrameDisgust, drawFrameWait, drawFrameOK, drawFrameHome, drawSleep};
 
 // how many frames are there?
-int frameCount = 6;
+int frameCount = 7;
 
 // Overlays are statically drawn on top of a frame eg. a clock
 OverlayCallback overlays[]={msOverlay};
@@ -196,9 +219,15 @@ void Multimedia::display_ud(String ud) {
 
 void Multimedia::display_heart(bool bum) {
   myInfo.heart = bum;
-  if (bum) {
-    //multimedia.led(LED_S, ON);
-    digitalWrite(LED_BUILTIN,LOW);
+  if (!myInfo.ud.equals("Zleep")){
+    if (bum) {
+      //multimedia.led(LED_S, ON);
+      digitalWrite(LED_BUILTIN,LOW);
+    } else {
+      // both blue leds off
+      digitalWrite(LED_BUILTIN,HIGH);
+      digitalWrite(D4, HIGH);
+    }
   } else {
     // both blue leds off
     digitalWrite(LED_BUILTIN,HIGH);
