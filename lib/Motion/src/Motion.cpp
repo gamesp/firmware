@@ -53,7 +53,7 @@ bool Motion::movForward(int8_t squares){
       if (DEBUG_MO) {
         Serial.println("Go FORWARD");
       }
-      gear.i2c('F',HOWMANYLOOPS_FB);
+      gear.i2c('F',HOWMANYLOOPS_FB_15);
     }
     return true;
   }
@@ -80,7 +80,7 @@ bool Motion::movForward(int8_t squares){
       if (DEBUG_MO) {
         Serial.println("Go Back");
       }
-      gear.i2c('B',HOWMANYLOOPS_FB);
+      gear.i2c('B',HOWMANYLOOPS_FB_15);
     }
     return true;
   }

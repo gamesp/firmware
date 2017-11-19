@@ -4,8 +4,9 @@
 #include <stdint.h>
 #include "Gear.h"
 
-#define HOWMANYLOOPS_FB 218 //how far does robota go, 1 to debug, 218 to one square
-#define HOWMANYLOOPS_LR 132 // right and left 90º
+#define HOWMANYLOOPS_FB_10 218 //how far does robota go, 1 to debug, 218 to one square 10cm
+#define HOWMANYLOOPS_FB_15 327 // one square 15cm
+#define HOWMANYLOOPS_LR 128 // right and left 90º
 #define MAXCELL 6 //number of cells
 
 
