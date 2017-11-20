@@ -185,3 +185,22 @@ int Motion::getY() {
 char Motion::getCardinal() {
   return _cardinal[_myCompass];
 }
+/**
+ * set X position
+ */
+void Motion::setX(int x) {
+  _myPosition[0]=x;
+}
+/**
+ * set Y position
+ */
+void Motion::setY(int y) {
+  _myPosition[1] = y;
+}
+/**
+ * set compass direction
+ */
+void Motion::setCardinal(char compass) {
+    // TODO convert char -> index
+  _myCompass = 0;
+}

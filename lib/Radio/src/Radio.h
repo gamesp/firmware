@@ -34,6 +34,7 @@ class Radio {
      void wsbroadcast(String msg);
      void wssend(uint8_t num, String msg);
      void wsexecuting(uint8_t num, char command, int X, int Y, char compass);
+     void changeXY(uint8_t num, int x, int y, const char* compass);
      void changeUD(uint8_t num, const char* ud, String board);
      void executCommands(uint8_t num, const char* commands, String board);
      // listen websocket at port 81

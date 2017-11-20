@@ -46,6 +46,8 @@ Multimedia::Multimedia(){
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(_leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   FastLED.setBrightness(MAX_BRIGHTNESS);
   FastLED.clear();
+  fill_solid(_leds, NUM_LEDS, CRGB::Black);
+  FastLED.show();
 
   //Init info to display
   myInfo.x = 0;
@@ -74,7 +76,7 @@ void Multimedia::led(uint8_t ledNumber, uint8_t stateON) {
  * turn OFF all leds
  */
 void Multimedia::turnOFF() {
-  fill_solid(_leds, 5, CRGB::Black);
+  fill_solid(_leds, NUM_LEDS, CRGB::Black);
   FastLED.show();
   // blue led off
   digitalWrite(D4, HIGH);
@@ -93,14 +95,15 @@ void Multimedia::movingLEDs(CRGB color) {
 }
 void Multimedia::sleep(CRGB color) {
   Serial.println("Sleep");
-  // First, clear the existing led values
-  FastLED.clear();
-    /*for(int led = 0; led < NUM_LEDS; led++) {
-            _leds[led] = CRGB::Blue;
-    }*/
-    fill_solid(_leds, NUM_LEDS, CRGB::BlueViolet);
-    FastLED.setBrightness(255);
+  float value;
+  // fade in
+  for(int cycle = 100; cycle > 0; cycle--) {
+    delay(25);
+    value = 255*cos(PI*(((float)cycle*45/100)+45)/180);
+    fill_solid(_leds, NUM_LEDS, color);
+    FastLED.setBrightness((int) value);
     FastLED.show();
+  }
 }
 
 void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {

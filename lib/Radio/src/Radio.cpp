@@ -22,6 +22,8 @@ See LICENSE.txt for details
 
 const char* commands;
 const char* ud;
+const char* compass;
+int coordX, coordY;
 
 /**
  * init websocket server
@@ -37,7 +39,7 @@ void Radio::init() {
   // start webSocket server
   webSocket.begin();
   // init screen
-  multimedia.display_update(PI_);
+  multimedia.display_update(HOME);
   // play welcome
   multimedia.buzzer_rttl(RTTL_WELCOME);
   //turn off all leds
@@ -89,20 +91,39 @@ void Radio::init() {
             commands = rxWS["commands"];
             ud = rxWS["UD"];
 
+
             if (DEBUG_R) {
               Serial.println();
               Serial.printf("[commands]:%s:\n", commands);
               Serial.printf("[UD]:%s:\n", ud);
               Serial.print("[board]:");
               Serial.println(rxWS["board"].as<String>());
+              Serial.print("[X]:");
+              Serial.println(rxWS["X"].as<String>());
+              Serial.print("[Y]:");
+              Serial.println(rxWS["Y"].as<String>());
+              Serial.printf("[compass]:%s:\n",compass);
             }
             // Change UD and load new board
+            if (rxWS["X"]!=NULL && rxWS["Y"]!=NULL && rxWS["compass"]!=NULL ) {
+                coordX = atoi(rxWS["X"]);
+                coordY = atoi(rxWS["Y"]);
+                compass = rxWS["compass"];
+                Radio::changeXY(num,coordX,coordY,compass);
+            }
             if (ud!=NULL) Radio::changeUD(num,ud,rxWS["board"].as<String>());
             // Execut commands
             if (commands!=NULL) Radio::executCommands(num,commands,rxWS["board"].as<String>());
             break;
     } // switch type of WS
   });
+}
+
+void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
+    multimedia.display_update(x, y, compass[0]);
+    motors.setCardinal(compass[0]);
+    motors.setX(x);
+    motors.setY(y);
 }
 
 void Radio::changeUD(uint8_t num, const char* ud, String board){
@@ -112,6 +133,8 @@ void Radio::changeUD(uint8_t num, const char* ud, String board){
   // execute commands to update state
   const char stop[] = "S";
   executCommands(num, stop, board);
+  //turn off all leds
+  multimedia.turnOFF();
 }
 
 void Radio::executCommands(uint8_t num, const char* commands, String board){

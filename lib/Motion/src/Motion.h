@@ -57,11 +57,14 @@ public:
     int steepX(int myCompass);
     //movement Y axis
     int steepY(int myCompass);
-    // get private
+    // get and set private
     int getX();
     int getY();
     char getCardinal();
-    // to dend i2c
+    void setX(int x);
+    void setY(int y);
+    void setCardinal(char compass);
+    // to send i2c
     Gear gear;
 private:
   //actual position on the board
