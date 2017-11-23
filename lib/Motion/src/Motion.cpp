@@ -201,6 +201,14 @@ void Motion::setY(int y) {
  * set compass direction
  */
 void Motion::setCardinal(char compass) {
-    // TODO convert char -> index
-  _myCompass = 0;
+    //convert char -> index _cardinal[4] = {'N','E','S','W'};
+    switch (compass) {
+        case 'N' : _myCompass = 0; break;
+        case 'E' : _myCompass = 1; break;
+        case 'S' : _myCompass = 2; break;
+        case 'W' : _myCompass = 3; break;
+        default : _myCompass = 0;
+    }
+
+
 }

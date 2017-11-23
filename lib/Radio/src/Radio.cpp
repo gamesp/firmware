@@ -90,7 +90,9 @@ void Radio::init() {
 
             commands = rxWS["commands"];
             ud = rxWS["UD"];
-
+            compass = rxWS["compass"];
+            coordX = rxWS["X"];
+            coordY = rxWS["Y"];
 
             if (DEBUG_R) {
               Serial.println();
@@ -99,18 +101,14 @@ void Radio::init() {
               Serial.print("[board]:");
               Serial.println(rxWS["board"].as<String>());
               Serial.print("[X]:");
-              Serial.println(rxWS["X"].as<String>());
+              Serial.println(coordX);
               Serial.print("[Y]:");
-              Serial.println(rxWS["Y"].as<String>());
-              Serial.printf("[compass]:%s:\n",compass);
+              Serial.println(coordY);
+              Serial.print("[compass]:");
+              Serial.println(compass);
             }
-            // Change UD and load new board
-            if (rxWS["X"]!=NULL && rxWS["Y"]!=NULL && rxWS["compass"]!=NULL ) {
-                coordX = atoi(rxWS["X"]);
-                coordY = atoi(rxWS["Y"]);
-                compass = rxWS["compass"];
-                Radio::changeXY(num,coordX,coordY,compass);
-            }
+            // Change UD and XY
+            if (compass!=NULL) Radio::changeXY(num,coordX,coordY,compass);
             if (ud!=NULL) Radio::changeUD(num,ud,rxWS["board"].as<String>());
             // Execut commands
             if (commands!=NULL) Radio::executCommands(num,commands,rxWS["board"].as<String>());
@@ -120,6 +118,9 @@ void Radio::init() {
 }
 
 void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
+    if (DEBUG_R) {
+        Serial.println("Change XY,compass");
+    }
     multimedia.display_update(x, y, compass[0]);
     motors.setCardinal(compass[0]);
     motors.setX(x);
@@ -127,6 +128,9 @@ void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
 }
 
 void Radio::changeUD(uint8_t num, const char* ud, String board){
+    if (DEBUG_R) {
+        Serial.println("Change UD");
+    }
   String _ud = (String) ud;
   multimedia.set_board(board);
   multimedia.display_ud(_ud);
