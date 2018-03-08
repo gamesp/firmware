@@ -28,15 +28,55 @@ Motion::Motion(){
   _myAuxPosition[1] = getY();
   _myCompass=0;
 }
-
+void Motion::setFree(bool free){
+    _free = free;
+}
+/**
+ * mov Forward or Backward if squares is Negative
+ * @param squares number of movement
+ * return true if mov or false if out of outboard
+ **/
 bool Motion::movForward(int8_t squares){
-  // go Forward
-  if (squares>0) {
+    // need add or subtrac if forward or Backward
+    _signal = squares/abs(squares);
+    // check mode free
+    if (!_free) {
+        if (DEBUG_MO) Serial.println("NO UD Free");
+        // check out of board
+        if (checkOut(squares)) {
+            return false;
+        } else {
+            if (DEBUG_MO) {
+              Serial.print("Go F/B ");
+              Serial.println(_signal);
+            }
+            // move
+            gear.i2c(_signal>0 ? 'F':'B',HOWMANYLOOPS_FB_15);
+            return true;
+        }
+    } else {
+        // UD free always true
+        if (DEBUG_MO) Serial.println("UD Free");
+        if (DEBUG_MO) {
+          Serial.print("Go F/B ");
+          Serial.println(_signal);
+        }
+        // move
+        gear.i2c(_signal>0 ? 'F':'B',HOWMANYLOOPS_FB_15);
+        return true;
+    }
+}
+/**
+ * check if the movement will be out of board and update/move position
+ * @param squares number of movement
+ * return true if out of board or true if update/move
+ **/
+bool Motion::checkOut(int8_t squares){
     // check board limit
     // X position
-    _myAuxPosition[0] = _myAuxPosition[0] + steepX(_myCompass);
+    _myAuxPosition[0] = _myAuxPosition[0] + _signal*steepX(_myCompass);
     // Y position
-    _myAuxPosition[1] = _myAuxPosition[1] + steepY(_myCompass);
+    _myAuxPosition[1] = _myAuxPosition[1] + _signal*steepY(_myCompass);
     if ( (_myAuxPosition[0] > MAXCELL-1) || (_myAuxPosition[1] > MAXCELL-1) || (_myAuxPosition[0] < 0) || (_myAuxPosition[1] < 0) ){
       // out of board
       if (DEBUG_MO) {
@@ -44,47 +84,18 @@ bool Motion::movForward(int8_t squares){
       }
       _myAuxPosition[0] = getX();
       _myAuxPosition[1] = getY();
-      return false;
-    } else {
-      // X position
-      _myPosition[0] = _myPosition[0] + steepX(_myCompass);
-      // Y position
-      _myPosition[1] = _myPosition[1] + steepY(_myCompass);
-      if (DEBUG_MO) {
-        Serial.println("Go FORWARD");
-      }
-      gear.i2c('F',HOWMANYLOOPS_FB_15);
+      return true;
     }
-    return true;
-  }
-  // go Backward
-  else {
-    // check board limit
-    // X position
-    _myAuxPosition[0] = _myAuxPosition[0] - steepX(_myCompass);
-    // Y position
-    _myAuxPosition[1] = _myAuxPosition[1] - steepY(_myCompass);
-    if ( (_myAuxPosition[0] > MAXCELL-1) || (_myAuxPosition[1] > MAXCELL-1) || (_myAuxPosition[0] < 0) || (_myAuxPosition[1] < 0) ) {
-      // out of board
-      if (DEBUG_MO) {
-        Serial.println("OUT");
-      }
-      _myAuxPosition[0] = getX();
-      _myAuxPosition[1] = getY();
-      return false;
-    } else {
+    else {
+      // in board update coord
       // X position
-      _myPosition[0] = _myPosition[0] - steepX(_myCompass);
+      _myPosition[0] = _myPosition[0] + _signal*steepX(_myCompass);
       // Y position
-      _myPosition[1] = _myPosition[1] - steepY(_myCompass);
-      if (DEBUG_MO) {
-        Serial.println("Go Back");
-      }
-      gear.i2c('B',HOWMANYLOOPS_FB_15);
+      _myPosition[1] = _myPosition[1] + _signal*steepY(_myCompass);
+      return false;
     }
-    return true;
-  }
 }
+
 
 void Motion::turn(bool rightHanded){
   if (rightHanded) {

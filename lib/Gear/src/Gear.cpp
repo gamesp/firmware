@@ -17,7 +17,7 @@ See LICENSE.txt for details
 
 #include "Gear.h"
 // Debug Gear
-#define DEBUG_G 1
+#define DEBUG_G 0
 
 /*  Wire.h already defines "Wire" which the PCF8574-class would use by default,
     but we define our own instance of it and use that instead!

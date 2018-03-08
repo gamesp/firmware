@@ -32,6 +32,10 @@ public:
       return movForward(-squares);
     }
     /**
+     * check if out of limit
+     **/
+    bool checkOut(int8_t squares);
+    /**
      * turn right-handed if param true or left-handed if param false
      * @param rightHanded if true turn right, if false turn left
      * return true if it was movement, false if outboard
@@ -66,6 +70,8 @@ public:
     void setCardinal(char compass);
     // to send i2c
     Gear gear;
+    void setFree(bool free);
+
 private:
   //actual position on the board
   //init my position, right inf corner
@@ -77,6 +83,10 @@ private:
   //cardinal points
   const char _cardinal[4] = {'N','E','S','W'};
   //String _commands = "SFLBR";
+  // mode free
+  bool _free;
+  // signal + Forward, - Backward
+  int8_t _signal;
 
 };
 

@@ -96,16 +96,18 @@ void Radio::init() {
 
             if (DEBUG_R) {
               Serial.println();
-              Serial.printf("[commands]:%s:\n", commands);
-              Serial.printf("[UD]:%s:\n", ud);
+              Serial.printf("[commands]:");
+              if (commands!=NULL) Serial.println(commands); else Serial.println();
+              Serial.printf("[UD]:");
+              if (ud!=NULL) Serial.println(ud); else Serial.println("no hay cambio");
               Serial.print("[board]:");
-              Serial.println(rxWS["board"].as<String>());
+              if (rxWS["board"]!=NULL) Serial.println(rxWS["board"].as<String>()); else Serial.println();
               Serial.print("[X]:");
               Serial.println(coordX);
               Serial.print("[Y]:");
               Serial.println(coordY);
               Serial.print("[compass]:");
-              Serial.println(compass);
+              if (compass!=NULL) Serial.println(compass);
             }
             // Change UD and XY
             if (compass!=NULL) Radio::changeXY(num,coordX,coordY,compass);
@@ -127,13 +129,18 @@ void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
     motors.setY(y);
 }
 
-void Radio::changeUD(uint8_t num, const char* ud, String board){
-    if (DEBUG_R) {
-        Serial.println("Change UD");
-    }
+void Radio::changeUD(uint8_t num, const char* ud, String board) {
   String _ud = (String) ud;
   multimedia.set_board(board);
   multimedia.display_ud(_ud);
+  if (_ud.equals("Free")) {
+      motors.setFree(true);
+  } else {
+      motors.setFree(false);
+  }
+  if (DEBUG_R) {
+      Serial.println("Change UD");
+  }
   // execute commands to update state
   const char stop[] = "S";
   executCommands(num, stop, board);

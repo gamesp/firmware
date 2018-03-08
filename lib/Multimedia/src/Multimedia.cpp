@@ -107,6 +107,7 @@ void Multimedia::sleep(CRGB color) {
 }
 
 void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
+    display->flipScreenVertically();
   if (!myInfo.ud.equals("Zleep")){
     display->setContrast('z');
     display->setFont(ArialMT_Plain_10);
