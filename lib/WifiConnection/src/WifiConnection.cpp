@@ -20,16 +20,18 @@ See LICENSE.txt for details
 // Debug wifi connection
 #define DEBUG_W 1
 
+WiFiClient espClient;
+PubSubClient client(espClient);
 /**
  * Constructor
  */
 WifiConnection::WifiConnection() {
-  // take mac address
-  WiFi.macAddress(_mac);
-  // append the two final hex of mac
-  _NameString += "-" + String(_mac[4],HEX) + String(_mac[5],HEX);
-  // convert string to const char *
-  _AP_NameString = _NameString.c_str();
+    // take mac address
+    WiFi.macAddress(_mac);
+    // append the two final hex of mac
+    _NameString += "-" + String(_mac[4],HEX) + String(_mac[5],HEX);
+    // convert string to const char *
+    _AP_NameString = _NameString.c_str();
 };
 /**
  * Mode AP
@@ -46,6 +48,26 @@ void WifiConnection::onlyAP() {
     WiFi.softAPIP();
   }
   delay(100);
+}
+/**
+ * Mode MQTT
+ */
+void WifiConnection::MQTT() {
+    if (DEBUG_W) {
+      Serial.print("MQTT");
+    }
+    client.setServer(mqtt_server, 1883);
+    client.setCallback([&](char* topic, byte* payload, unsigned int length) {
+        Serial.print("Message arrived [");
+        Serial.print(topic);
+        Serial.print("] ");
+        for (int i = 0; i < length; i++) {
+          Serial.print((char)payload[i]);
+        }
+        Serial.println();
+    });
+    delay(100);
+
 }
 String WifiConnection::getSSID() {
   return _NameString;

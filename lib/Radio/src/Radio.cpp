@@ -31,13 +31,13 @@ int coordX, coordY;
 void Radio::init() {
   // stop motor reset output
   motors.stop();
-  //init display
-  multimedia.display_init();
   //define wifi parameters
   WifiConnection wificonnection;
   _idRobota = wificonnection.getSSID();
+  //init display
+  multimedia.display_init(_idRobota.substring(8));
   // start webSocket server
-  webSocket.begin();
+  //webSocket.begin();
   // init screen
   multimedia.display_update(HOME);
   // play welcome
@@ -251,13 +251,13 @@ void Radio::executCommands(uint8_t num, const char* commands, String board){
   } // loop evry commands
   // stop robota anyway after executing
   motors.stop();
-  //multimedia.display_update(WAIT);
+  multimedia.display_update(WAIT);
 }
 /**
  * loop websocket server and update ui display
  */
  void Radio::wsloop() {
-   webSocket.loop();
+   //webSocket.loop();
    multimedia.display_update();
  }
  /**
@@ -274,7 +274,7 @@ void Radio::wsbroadcast(String msg){
   objectJSON["state"] = msg;
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
-  webSocket.broadcastTXT(JSONtoString);
+  //webSocket.broadcastTXT(JSONtoString);
   multimedia.display_heart(false);
   multimedia.display_update();
 }
@@ -292,7 +292,7 @@ void Radio::wssend(uint8_t num, String msg){
   objectJSON["state"] = msg;
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
-  webSocket.sendTXT(num,JSONtoString);
+  //webSocket.sendTXT(num,JSONtoString);
 }
 /**
  *  send a executing message
@@ -313,5 +313,5 @@ void Radio::wsexecuting(uint8_t num, char command, int X, int Y, char compass){
   objectJSON["compass"] = (String)compass;
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
-  webSocket.sendTXT(num,JSONtoString);
+  //webSocket.sendTXT(num,JSONtoString);
 }

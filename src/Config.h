@@ -8,7 +8,7 @@
 
 // id_connected
 #define NONET     0  // no connection
-#define MQTT      1  // there is wifi and mqtt broker connection
+#define WIFIMQTT      1  // there is wifi and mqtt broker connection
 #define WEBLOCAL  2  // no wifi or no mqtt broker connection
 uint8_t id_connected;
 

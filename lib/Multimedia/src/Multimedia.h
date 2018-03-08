@@ -35,6 +35,7 @@
 
 // info to display
 typedef struct _InfoDisplay {
+  String idRobotta="DOMOTTA-XXXX";
   int x=0;
   int y=0;
   char compass='N';
@@ -56,7 +57,7 @@ public:
   void turnOFF();
   void movingLEDs(CRGB color);
   void sleep(CRGB color);
-  void display_init();
+  void display_init(String ssid);
   void display_update();
   void display_update(uint8_t state);
   void display_update(int x, int y, char compass);

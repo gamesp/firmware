@@ -55,6 +55,7 @@ Multimedia::Multimedia(){
   myInfo.ud = "X";
   myInfo.msg = "Up!";
   myInfo.board = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  myInfo.idRobotta = "XXXX";
   //Init buzzer
   buzz.init();
 }
@@ -124,9 +125,13 @@ void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
     coord.concat(myInfo.compass);
     coord.concat("]");
     display->setTextAlignment(TEXT_ALIGN_RIGHT);
+    // draw bum-bum heart, keep alive
     display->drawString(128, 0, coord);
     display->drawXbm(110, 40, heart_width, heart_height, heart_bits);
     if (myInfo.heart) display->drawXbm(110, 40, heartbum_width, heartbum_height, heartbum_bits);
+    // display mac macAddress
+    display->setTextAlignment(TEXT_ALIGN_LEFT);
+    display->drawString(0, 48, myInfo.idRobotta);
   } else {
     display->setContrast('0');
   }
@@ -179,10 +184,11 @@ int frameCount = 7;
 OverlayCallback overlays[]={msOverlay};
 int overlaysCount = 1;
 
-void Multimedia::display_init() {
+void Multimedia::display_init(String ssid) {
+  myInfo.idRobotta = ssid;
   // The ESP is capable of rendering 60fps in 80Mhz mode
-	// but that won't give you much time for anything else
-	// run it in 160Mhz mode or just set it to 30 fps
+  // but that won't give you much time for anything else
+  // run it in 160Mhz mode or just set it to 30 fps
   ui.setTargetFPS(30);
   ui.setFrames(frames, frameCount);
   ui.setOverlays(overlays,overlaysCount);

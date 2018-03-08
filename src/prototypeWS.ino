@@ -22,6 +22,10 @@
 #include "WifiConnection.h"
 #include "Radio.h"
 
+// Update these with values suitable for your network.
+const char* ssid = "wifi";
+const char* password = "perlitalagatita";
+
 // wifi Configuration
 WifiConnection wifiRobota;
 // connection with websocket
@@ -34,16 +38,21 @@ void setup () {
   pinMode(LED_BUILTIN,OUTPUT);
   pinMode(D4,OUTPUT);
   // only AP
-  id_connected = WEBLOCAL;
+  //id_connected = WEBLOCAL;
+  // wifi with internet -> MQTT
+  id_connected = WIFIMQTT;
 
   switch (id_connected) {
-    case MQTT:
+    case WIFIMQTT:
+      setup_wifi();
+      //wifiRobota.MQTT();
+      radio.init();
       break;
     case NONET:
       break;
     case WEBLOCAL:
       wifiRobota.onlyAP();
-      // init websocket server
+      // init websocket server or TODO: MQTT
       radio.init();
       break;
   }
@@ -64,4 +73,26 @@ void loop() {
     // keep alive, server to everybody
     radio.wsbroadcast(msg);
   }
+}
+
+void setup_wifi() {
+
+  delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  randomSeed(micros());
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
 }
