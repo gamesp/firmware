@@ -1,9 +1,8 @@
 /*
-  ESP8266 WebSocket conection
-  Use of the wifimanager to AP library
+  Firmware, Gamesp
 */
 /*
-   Copyright 2017 Damian Nogueiras
+   Copyright 2017 Gamesp - Damian Nogueiras
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
@@ -21,15 +20,16 @@
 #include "Config.h"
 #include "WifiConnection.h"
 #include "Radio.h"
-
-// Update these with values suitable for your network.
-const char* ssid = "wifi";
-const char* password = "perlitalagatita";
+// ssid and password
+#include "wifiparam.h"
 
 // wifi Configuration
 WifiConnection wifiRobota;
-// connection with websocket
+// connection
 Radio radio;
+
+// if exist wifi then connect to broker
+bool isMQTT = true;
 
 void setup () {
   // init de serial comunication
@@ -37,25 +37,12 @@ void setup () {
   //built in led and blue led
   pinMode(LED_BUILTIN,OUTPUT);
   pinMode(D4,OUTPUT);
-  // only AP
-  //id_connected = WEBLOCAL;
-  // wifi with internet -> MQTT
-  id_connected = WIFIMQTT;
-
-  switch (id_connected) {
-    case WIFIMQTT:
-      setup_wifi();
-      //wifiRobota.MQTT();
-      radio.init();
-      break;
-    case NONET:
-      break;
-    case WEBLOCAL:
-      wifiRobota.onlyAP();
-      // init websocket server or TODO: MQTT
-      radio.init();
-      break;
-  }
+  // Mode access point to configure
+  wifiRobota.onlyAP();
+  // TODO there is wifi?
+  setup_wifi();
+  // init websocket server TODO and MQTT if wifi connected
+  radio.init(isMQTT);
 }
 
 long lastMsg = millis();
@@ -63,7 +50,7 @@ int value = 0;
 
 void loop() {
   String msg;
-  radio.wsloop();
+  radio.loop(isMQTT);
   long now = millis();
   if (now - lastMsg > 5000) {
     lastMsg = now;
@@ -71,7 +58,7 @@ void loop() {
     msg = "ON ";
     msg += value;
     // keep alive, server to everybody
-    radio.wsbroadcast(msg);
+    radio.broadcast(msg, isMQTT);
   }
 }
 

@@ -24,20 +24,27 @@ const char* commands;
 const char* ud;
 const char* compass;
 int coordX, coordY;
+String topic = "";
+
+// MQTT client
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 /**
  * init websocket server
  */
-void Radio::init() {
+void Radio::init(bool isMQTT) {
+  _isMQTT = isMQTT;
   // stop motor reset output
   motors.stop();
-  //define wifi parameters
+  //define id with mac adress ssid = DOMOTTA-XXXX
   WifiConnection wificonnection;
-  _idRobota = wificonnection.getSSID();
+  _idRobota = wificonnection.getSSID().substring(8);
+  topic = _root + "/" + _idRobota;
   //init display
-  multimedia.display_init(_idRobota.substring(8));
+  multimedia.display_init(_idRobota);
   // start webSocket server
-  //webSocket.begin();
+  webSocket.begin();
   // init screen
   multimedia.display_update(HOME);
   // play welcome
@@ -50,7 +57,6 @@ void Radio::init() {
   // http://stackoverflow.com/questions/4940259/lambdas-require-capturing-this-to-call-static-member-function
   webSocket.onEvent([&](uint8_t num, WStype_t type, uint8_t * payload, size_t lenght){
     String stringWS;
-
     switch(type) {
         case WStype_DISCONNECTED:
             if(DEBUG_R) {
@@ -60,7 +66,7 @@ void Radio::init() {
             break;
         case WStype_CONNECTED:
             // send message to client
-            Radio::wssend(num, "Client connected");
+            Radio::send(num, "Client connected", false);
             multimedia.display_update(SMILE);
             multimedia.movingLEDs(CRGB::Green);
             multimedia.movingLEDs(CRGB::DarkCyan);
@@ -117,6 +123,9 @@ void Radio::init() {
             break;
     } // switch type of WS
   });
+
+  // init mqtt Wifi Connection
+  if (_isMQTT) mqttConnection();
 }
 
 void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
@@ -247,23 +256,73 @@ void Radio::executCommands(uint8_t num, const char* commands, String board){
         }
     }
     // send coord
-    wsexecuting(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());
+    executing(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());
   } // loop evry commands
   // stop robota anyway after executing
   motors.stop();
   multimedia.display_update(WAIT);
 }
 /**
+ * Mode MQTT
+ */
+void Radio::mqttConnection() {
+    if (DEBUG_W) {
+      Serial.print("MQTT connection");
+    }
+    client.setServer(mqtt_server, 1883);
+    client.setCallback([&](char* topic, byte* payload, unsigned int length) {
+        Serial.print("MQTT arrived [");
+        Serial.print(topic);
+        Serial.print("] ");
+        for (int i = 0; i < length; i++) {
+          Serial.print((char)payload[i]);
+        }
+        Serial.println();
+    });
+    delay(100);
+}
+void Radio::reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect(_idRobota.c_str())) {
+      Serial.println("connected");
+      // Once connected, publish an announcement...
+      client.publish(topic.c_str(), "connected");
+      // ... and resubscribe
+      client.subscribe(topic.c_str());
+      _isMQTT = true;
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+      _isMQTT = false;
+    }
+  }
+}
+/**
  * loop websocket server and update ui display
  */
- void Radio::wsloop() {
-   //webSocket.loop();
+ void Radio::loop(bool isMQTT) {
+   // websocket loop
+   webSocket.loop();
+   // mqtt loop
+   if (isMQTT) {
+     if (!client.connected()) {
+       reconnect();
+     }
+     client.loop();
+   }
+   // refresh display
    multimedia.display_update();
  }
  /**
-  *  send a broadcast, before create JSON
+  *  send a broadcast, before must create JSON
   */
-void Radio::wsbroadcast(String msg){
+void Radio::broadcast(String msg, bool isMQTT){
   multimedia.display_heart(true);
   multimedia.display_update();
   String JSONtoString;
@@ -274,16 +333,20 @@ void Radio::wsbroadcast(String msg){
   objectJSON["state"] = msg;
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
-  //webSocket.broadcastTXT(JSONtoString);
+  // send websocket broadcast
+  webSocket.broadcastTXT(JSONtoString);
+  // publish mqtt
+  if (isMQTT) client.publish(topic.c_str(), JSONtoString.c_str());
+  // turn off heart
   multimedia.display_heart(false);
   multimedia.display_update();
 }
 /**
- *  send a state
+ * send a state
  * @param num id of client
- * @param msg string with state (ON + value)
+ * @param msg string with information
  */
-void Radio::wssend(uint8_t num, String msg){
+void Radio::send(uint8_t num, String msg, bool isMQTT){
   String JSONtoString;
   // JSON object
   StaticJsonBuffer<200> jsonBuffer;
@@ -292,12 +355,15 @@ void Radio::wssend(uint8_t num, String msg){
   objectJSON["state"] = msg;
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
-  //webSocket.sendTXT(num,JSONtoString);
+  // send ws message
+  webSocket.sendTXT(num,JSONtoString);
+  // send mqtt message
+  if (isMQTT) client.publish(topic.c_str(), JSONtoString.c_str());
 }
 /**
  *  send a executing message
  */
-void Radio::wsexecuting(uint8_t num, char command, int X, int Y, char compass){
+void Radio::executing(uint8_t num, char command, int X, int Y, char compass){
   if (DEBUG_R) {
     Serial.print("Compass:");
     Serial.println(compass);
@@ -313,5 +379,8 @@ void Radio::wsexecuting(uint8_t num, char command, int X, int Y, char compass){
   objectJSON["compass"] = (String)compass;
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
-  //webSocket.sendTXT(num,JSONtoString);
+  // send over websocket
+  webSocket.sendTXT(num,JSONtoString);
+  // publish mqtt broker
+  if (_isMQTT) client.publish(topic.c_str(), JSONtoString.c_str());
 }

@@ -17,11 +17,7 @@ See LICENSE.txt for details
 
 #include "WifiConnection.h"
 #include <Arduino.h>
-// Debug wifi connection
-#define DEBUG_W 1
 
-WiFiClient espClient;
-PubSubClient client(espClient);
 /**
  * Constructor
  */
@@ -48,26 +44,6 @@ void WifiConnection::onlyAP() {
     WiFi.softAPIP();
   }
   delay(100);
-}
-/**
- * Mode MQTT
- */
-void WifiConnection::MQTT() {
-    if (DEBUG_W) {
-      Serial.print("MQTT");
-    }
-    client.setServer(mqtt_server, 1883);
-    client.setCallback([&](char* topic, byte* payload, unsigned int length) {
-        Serial.print("Message arrived [");
-        Serial.print(topic);
-        Serial.print("] ");
-        for (int i = 0; i < length; i++) {
-          Serial.print((char)payload[i]);
-        }
-        Serial.println();
-    });
-    delay(100);
-
 }
 String WifiConnection::getSSID() {
   return _NameString;

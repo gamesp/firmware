@@ -5,6 +5,9 @@
 #include <PubSubClient.h>
 #include <stdint.h>
 
+// Debug wifi connection
+#define DEBUG_W 1
+
 
 class WifiConnection {
   public:
@@ -18,23 +21,14 @@ class WifiConnection {
       */
      void onlyAP();
      /**
-      * Configure wifi-internet and MQTT
-      */
-     void MQTT();
-     /**
       * return ssid, the same to id of robota
       */
       String getSSID();
-      /**
-       * Callback function for events
-
-      void callback();*/
 
  private:
    String _NameString = "DOMOTTA";
    const char * _AP_NameString;
    uint8_t _mac[6];
-   const char* mqtt_server = "broker.mqtt-dashboard.com";
  };
 
 #endif // _WIFICONNECTION_H
