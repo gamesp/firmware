@@ -16,6 +16,8 @@ See LICENSE.txt for details
 */
 
 #include "Radio.h"
+// broker host and port
+#include "brokerparam.h"
 
 // Debug Radio
 #define DEBUG_R 1
@@ -269,7 +271,7 @@ void Radio::mqttConnection() {
     if (DEBUG_W) {
       Serial.print("MQTT connection");
     }
-    client.setServer(mqtt_server, 1883);
+    client.setServer(mqtt_server, mqtt_port);
     client.setCallback([&](char* topic, byte* payload, unsigned int length) {
         Serial.print("MQTT arrived [");
         Serial.print(topic);

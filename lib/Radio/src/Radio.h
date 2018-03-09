@@ -10,7 +10,6 @@
 #include "Multimedia.h"
 #include "WifiConnection.h"
 
-
 // state of leds
 #define ON 1  // true
 #define OFF 0 // false
@@ -39,8 +38,7 @@ class Radio {
      void executCommands(uint8_t num, const char* commands, String board);
      void mqttConnection();
      void reconnect();
-     // MQTT broker
-     const char* mqtt_server = "broker.mqtt-dashboard.com";
+
      // listen websocket at port 81
      WebSocketsServer webSocket = WebSocketsServer(81);
      // Motors of robota to mov
