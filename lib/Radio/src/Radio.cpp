@@ -69,7 +69,7 @@ void Radio::init(bool isMQTT) {
             break;
         case WStype_CONNECTED:
             // send message to client
-            Radio::send(num, "Client connected", false);
+            Radio::send(num, "{\"state\":\"connected\"}", false);
             multimedia.display_update(SMILE);
             multimedia.movingLEDs(CRGB::Green);
             multimedia.movingLEDs(CRGB::DarkCyan);
@@ -83,15 +83,20 @@ void Radio::init(bool isMQTT) {
             multimedia.led(LED_S,OFF);
             break;
         case WStype_TEXT:
+            // In order to republish or use this payload, a copy must be made
+            // Allocate the correct amount of memory for the payload copy
+            uint8_t* _payloadws = (uint8_t*)malloc(lenght);
+            // Copy the payload to the new buffer
+            memcpy(_payloadws,payload,lenght);
             // Memory pool for JSON object tree.
             StaticJsonBuffer<200> rxjsonBuffer;
             if (DEBUG_R) {
               Serial.println();
-              Serial.printf("[%u]: %s\n", num, payload);
+              Serial.printf("[%u]: %s\n", num, _payloadws);
             }
             // convert payload to JSON object
             // http://arduino.stackexchange.com/questions/30209/cast-from-uint8-t-to-char-loses-precision
-            JsonObject& rxWS = rxjsonBuffer.parseObject((char *)payload);
+            JsonObject& rxWS = rxjsonBuffer.parseObject((char *)_payloadws);
             if (!rxWS.success()) {
               Serial.println("parseObject() failed");
               return;
@@ -112,7 +117,6 @@ void Radio::init(bool isMQTT) {
  */
 void Radio::rxparse(JsonObject& rx, uint8_t num){
     unsigned int _length = 0;
-
     commands = rx["commands"];
     ud = rx["UD"];
     compass = rx["compass"];
@@ -169,11 +173,6 @@ void Radio::changeUD(uint8_t num, const char* ud, String board) {
   String _ud = (String) ud;
   multimedia.set_board(board);
   multimedia.display_ud(_ud);
-  if (_ud.equals("Free")) {
-      motors.setFree(true);
-  } else {
-      motors.setFree(false);
-  }
   if (DEBUG_R) {
       Serial.println("Change UD");
   }
@@ -235,23 +234,12 @@ void Radio::executCommands(uint8_t num, char command, String board){
     } // switch
     // display info
     multimedia.display_update(motors.getX(), motors.getY(), motors.getCardinal());
-    // update display state
-    // Out of board
-    /*if (!in) {
-      multimedia.display_update(DISGUST);
-      multimedia.buzzer_rttl(RTTL_MOSAIC);
-    } else {
-      // check board
+    /*
+      // check cell
       int _celda = MAXCELL*motors.getX()+motors.getY();
       String _board = multimedia.get_board();
-      char est_celda = _board[MAXCELL*motors.getX()+motors.getY()];*/
-      if (DEBUG_R) {
-        //Serial.println("Celda:");
-        //Serial.println((MAXCELL*motors.getX()+motors.getY()));
-        //Serial.print("Estado Celda:");
-        //Serial.println(est_celda);
-      }
-/*        switch (est_celda) {
+      char est_celda = _board[MAXCELL*motors.getX()+motors.getY()];
+        switch (est_celda) {
           // P -> PI
           case 'P':
             multimedia.display_update(PI_);
@@ -286,8 +274,8 @@ void Radio::executCommands(uint8_t num, char command, String board){
           default:
             multimedia.display_update(WAIT);
         }*/
-    //} else if (!in)
-    // send coord to client ws and mqtt
+
+  // send coord to client ws and mqtt
   if (feedback) executing(num,command,motors.getX(),motors.getY(),motors.getCardinal());
   // stop robota anyway after executing
   motors.stop();
@@ -380,9 +368,11 @@ void Radio::reconnect() {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
     if (client.connect(_idRobota.c_str())) {
-      Serial.println("connected");
+      Serial.println("connected MQTT");
       // Once connected, publish an announcement...
-      client.publish(_topic.c_str(), "connected");
+      String _topicstate = _topic + "/state";
+      String connectedMQTT = "{\"idRobota\":\""+_idRobota+"\",\"state\":\"connectedMQTT\"}";
+      client.publish(_topicstate.c_str(), connectedMQTT.c_str());
       // ... and subscribe to subtopic commands
       String topic_commands = _topic + "/commands";
       client.subscribe(topic_commands.c_str());
@@ -390,9 +380,9 @@ void Radio::reconnect() {
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
-      Serial.println(" try again in 3 seconds");
+      Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
-      delay(3000);
+      delay(5000);
       _isMQTT = false;
     }
   }
@@ -404,6 +394,7 @@ void Radio::loop(bool isMQTT) {
    // websocket loop
    webSocket.loop();
    // mqtt loop
+   //
    if (isMQTT) {
      if (!client.connected()) {
        reconnect();
