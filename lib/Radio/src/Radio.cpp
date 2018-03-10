@@ -26,7 +26,7 @@ const char* commands;
 const char* ud;
 const char* compass;
 int coordX, coordY;
-String topic = "";
+String _topic = "";
 
 // MQTT client
 WiFiClient espClient;
@@ -34,6 +34,7 @@ PubSubClient client(espClient);
 
 /**
  * init websocket server
+ * @param isMQTT if true then init connection to broker MQTT
  */
 void Radio::init(bool isMQTT) {
   _isMQTT = isMQTT;
@@ -42,7 +43,7 @@ void Radio::init(bool isMQTT) {
   //define id with mac adress ssid = DOMOTTA-XXXX
   WifiConnection wificonnection;
   _idRobota = wificonnection.getSSID().substring(8);
-  topic = _root + "/" + _idRobota;
+  _topic = _root + "/" + _idRobota;
   //init display
   multimedia.display_init(_idRobota);
   // start webSocket server
@@ -95,39 +96,60 @@ void Radio::init(bool isMQTT) {
               Serial.println("parseObject() failed");
               return;
             }
-
-            commands = rxWS["commands"];
-            ud = rxWS["UD"];
-            compass = rxWS["compass"];
-            coordX = rxWS["X"];
-            coordY = rxWS["Y"];
-
-            if (DEBUG_R) {
-              Serial.println();
-              Serial.printf("[commands]:");
-              if (commands!=NULL) Serial.println(commands); else Serial.println();
-              Serial.printf("[UD]:");
-              if (ud!=NULL) Serial.println(ud); else Serial.println("no hay cambio");
-              Serial.print("[board]:");
-              if (rxWS["board"]!=NULL) Serial.println(rxWS["board"].as<String>()); else Serial.println();
-              Serial.print("[X]:");
-              Serial.println(coordX);
-              Serial.print("[Y]:");
-              Serial.println(coordY);
-              Serial.print("[compass]:");
-              if (compass!=NULL) Serial.println(compass);
-            }
-            // Change UD and XY
-            if (compass!=NULL) Radio::changeXY(num,coordX,coordY,compass);
-            if (ud!=NULL) Radio::changeUD(num,ud,rxWS["board"].as<String>());
-            // Execut commands
-            if (commands!=NULL) Radio::executCommands(num,commands,rxWS["board"].as<String>());
+            // parse the msg received
+            rxparse(rxWS, num);
             break;
     } // switch type of WS
   });
 
   // init mqtt Wifi Connection
   if (_isMQTT) mqttConnection();
+}
+/**
+ * parse de JSON obect and execute executCommands
+ * @param rx the JSON object received
+ * @param num identified the websocket connection
+ */
+void Radio::rxparse(JsonObject& rx, uint8_t num){
+    unsigned int _length = 0;
+
+    commands = rx["commands"];
+    ud = rx["UD"];
+    compass = rx["compass"];
+    coordX = rx["X"];
+    coordY = rx["Y"];
+    // number of commands
+    if (commands != NULL) _length = strlen(commands);
+    if (DEBUG_R) {
+      Serial.println("Parse......");
+      Serial.printf("[commands]:");
+      if (commands!=NULL) Serial.println(commands); else Serial.println("no hay comandos");
+      Serial.printf("[UD]:");
+      if (ud!=NULL) Serial.println(ud); else Serial.println("no hay cambio");
+      /*Serial.print("[board]:");
+      if (rx["board"]!=NULL) Serial.println(rx["board"].as<String>()); else Serial.println("no hay board");*/
+      Serial.print("[X]:");
+      Serial.println(coordX);
+      Serial.print("[Y]:");
+      Serial.println(coordY);
+      Serial.print("[compass]:");
+      if (compass!=NULL) Serial.println(compass); else Serial.println("no hay compass");
+      Serial.println();
+    }
+    // Change UD and XY
+    if (compass!=NULL) Radio::changeXY(num,coordX,coordY,compass);
+    if (ud!=NULL) Radio::changeUD(num,ud,"");
+    // Execut commands
+    if (_length>0) {
+      while (*commands) {
+        if (DEBUG_R) {
+          Serial.print("dentro del while "); Serial.println(commands[0]);
+        }
+        executCommands(num, commands[0], "");
+        // next command
+        commands++;
+      }
+    }
 }
 
 void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
@@ -138,6 +160,9 @@ void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
     motors.setCardinal(compass[0]);
     motors.setX(x);
     motors.setY(y);
+    // execute commands to update state
+    char stop = 'S';
+    executCommands(num, stop, "");
 }
 
 void Radio::changeUD(uint8_t num, const char* ud, String board) {
@@ -153,26 +178,28 @@ void Radio::changeUD(uint8_t num, const char* ud, String board) {
       Serial.println("Change UD");
   }
   // execute commands to update state
-  const char stop[] = "S";
+  char stop = 'S';
   executCommands(num, stop, board);
   //turn off all leds
   multimedia.turnOFF();
 }
 
-void Radio::executCommands(uint8_t num, const char* commands, String board){
+void Radio::executCommands(uint8_t num, char command, String board){
   // ¿out of board?
   bool in;
-  for (int i = 0; i < strlen((const char *)(commands)); i++) {
+  // send feedback
+  bool feedback = true;
      if (DEBUG_R) {
-       Serial.print("Executing ");
-       Serial.println((char)commands[i]);
+       Serial.print("Execut Command:");
+       Serial.print((String)command);
+       Serial.println(".");
      }
      //turn off all leds
      multimedia.turnOFF();
      //Happy because execute command
-     multimedia.display_update(SMILE);
+     // multimedia.display_update(SMILE);
      // action for different commands
-     switch ((char)commands[i]) {
+     switch (command) {
        case 'F':
         multimedia.led(LED_F, ON);
         in = motors.movForward(1);
@@ -202,26 +229,29 @@ void Radio::executCommands(uint8_t num, const char* commands, String board){
         motors.stop();
         multimedia.led(LED_S, ON);
         break;
+      default :
+        feedback = false;
+        break;
     } // switch
     // display info
     multimedia.display_update(motors.getX(), motors.getY(), motors.getCardinal());
     // update display state
     // Out of board
-    if (!in) {
+    /*if (!in) {
       multimedia.display_update(DISGUST);
       multimedia.buzzer_rttl(RTTL_MOSAIC);
     } else {
       // check board
       int _celda = MAXCELL*motors.getX()+motors.getY();
       String _board = multimedia.get_board();
-      char est_celda = _board[MAXCELL*motors.getX()+motors.getY()];
+      char est_celda = _board[MAXCELL*motors.getX()+motors.getY()];*/
       if (DEBUG_R) {
-        Serial.print("Celda:");
-        Serial.println((MAXCELL*motors.getX()+motors.getY()));
-        Serial.print("Estado Celda:");
-        Serial.println(est_celda);
+        //Serial.println("Celda:");
+        //Serial.println((MAXCELL*motors.getX()+motors.getY()));
+        //Serial.print("Estado Celda:");
+        //Serial.println(est_celda);
       }
-        switch (est_celda) {
+/*        switch (est_celda) {
           // P -> PI
           case 'P':
             multimedia.display_update(PI_);
@@ -255,15 +285,44 @@ void Radio::executCommands(uint8_t num, const char* commands, String board){
             break;
           default:
             multimedia.display_update(WAIT);
-        }
-    }
-    // send coord
-    executing(num,(char)commands[i],motors.getX(),motors.getY(),motors.getCardinal());
-  } // loop evry commands
+        }*/
+    //} else if (!in)
+    // send coord to client ws and mqtt
+  if (feedback) executing(num,command,motors.getX(),motors.getY(),motors.getCardinal());
   // stop robota anyway after executing
   motors.stop();
   multimedia.display_update(WAIT);
 }
+/**
+ *  send a executing message to client
+ */
+void Radio::executing(uint8_t num, char comando, int X, int Y, char compass){
+  // to send object via websocket
+  String JSONtoString;
+  // JSON object
+  StaticJsonBuffer<200> jsonBufferex;
+  JsonObject& objectJSONex = jsonBufferex.createObject();
+  objectJSONex["idRobota"] = _idRobota;
+  objectJSONex["mov"] = (String)comando;
+  objectJSONex["X"] = X;
+  objectJSONex["Y"] = Y;
+  objectJSONex["compass"] = (String)compass;
+  // convert object JSON to string
+  objectJSONex.printTo(JSONtoString);
+  if (DEBUG_R) {
+    Serial.print("Executing......");
+    //objectJSONex.prettyPrintTo(Serial);
+    Serial.println(JSONtoString);
+  }
+  // send over websocket
+  if (num != NOWEBSOCK) webSocket.sendTXT(num,JSONtoString);
+  // publish mqtt broker
+  String topic_executing = _topic + "/executing";
+  char buffer[objectJSONex.measureLength() + 1];
+  objectJSONex.printTo(buffer, sizeof(buffer));
+  client.publish(topic_executing.c_str(), buffer, true);
+}
+
 /**
  * Mode MQTT
  */
@@ -273,16 +332,48 @@ void Radio::mqttConnection() {
     }
     client.setServer(mqtt_server, mqtt_port);
     client.setCallback([&](char* topic, byte* payload, unsigned int length) {
+      int num = NOWEBSOCK;
+      // ¿out of board?
+      bool in;
+      bool feedback = true;
+      int lengthMQTT = 0;
+      // In order to republish or use this payload, a copy must be made
+      // as the orignal payload buffer will be overwritten whilst
+      // constructing the PUBLISH packet.
+      // Allocate the correct amount of memory for the payload copy
+      byte* _payload = (byte*)malloc(length);
+      // Copy the payload to the new buffer
+      memcpy(_payload,payload,length);
+
+      if (DEBUG_R) {
+        Serial.println();
         Serial.print("MQTT arrived [");
         Serial.print(topic);
         Serial.print("] ");
         for (int i = 0; i < length; i++) {
-          Serial.print((char)payload[i]);
+          Serial.print((char)_payload[i]);
         }
         Serial.println();
+      }
+        // Memory pool for JSON object tree.
+        StaticJsonBuffer<200> rxjsonBuffer;
+        // convert payload to JSON object
+        // http://arduino.stackexchange.com/questions/30209/cast-from-uint8-t-to-char-loses-precision
+        JsonObject& rxMQTT = rxjsonBuffer.parseObject((char *)_payload);
+        if (!rxMQTT.success()) {
+          Serial.println("parseObject() failed");
+          return;
+        }
+        // parse the msg received
+        rxparse(rxMQTT);
+        // Free the memory
+        free(_payload);
     });
-    delay(100);
+    //delay(100);
 }
+/**
+ * reconnect with MQTT broker
+ */
 void Radio::reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
@@ -291,16 +382,17 @@ void Radio::reconnect() {
     if (client.connect(_idRobota.c_str())) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      client.publish(topic.c_str(), "connected");
-      // ... and resubscribe
-      client.subscribe(topic.c_str());
+      client.publish(_topic.c_str(), "connected");
+      // ... and subscribe to subtopic commands
+      String topic_commands = _topic + "/commands";
+      client.subscribe(topic_commands.c_str());
       _isMQTT = true;
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
+      Serial.println(" try again in 3 seconds");
       // Wait 5 seconds before retrying
-      delay(5000);
+      delay(3000);
       _isMQTT = false;
     }
   }
@@ -308,7 +400,7 @@ void Radio::reconnect() {
 /**
  * loop websocket server and update ui display
  */
- void Radio::loop(bool isMQTT) {
+void Radio::loop(bool isMQTT) {
    // websocket loop
    webSocket.loop();
    // mqtt loop
@@ -321,7 +413,7 @@ void Radio::reconnect() {
    // refresh display
    multimedia.display_update();
  }
- /**
+/**
   *  send a broadcast, before must create JSON
   */
 void Radio::broadcast(String msg, bool isMQTT){
@@ -338,7 +430,8 @@ void Radio::broadcast(String msg, bool isMQTT){
   // send websocket broadcast
   webSocket.broadcastTXT(JSONtoString);
   // publish mqtt
-  if (isMQTT) client.publish(topic.c_str(), JSONtoString.c_str());
+  String topic_state = _topic + "/state";
+  if (isMQTT) client.publish(topic_state.c_str(), JSONtoString.c_str());
   // turn off heart
   multimedia.display_heart(false);
   multimedia.display_update();
@@ -358,31 +451,7 @@ void Radio::send(uint8_t num, String msg, bool isMQTT){
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
   // send ws message
-  webSocket.sendTXT(num,JSONtoString);
+  if (num != NOWEBSOCK) webSocket.sendTXT(num,JSONtoString);
   // send mqtt message
-  if (isMQTT) client.publish(topic.c_str(), JSONtoString.c_str());
-}
-/**
- *  send a executing message
- */
-void Radio::executing(uint8_t num, char command, int X, int Y, char compass){
-  if (DEBUG_R) {
-    Serial.print("Compass:");
-    Serial.println(compass);
-  }
-  String JSONtoString;
-  // JSON object
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& objectJSON = jsonBuffer.createObject();
-  objectJSON["idRobota"] = _idRobota;
-  objectJSON["mov"] = (String)command;
-  objectJSON["X"] = X;
-  objectJSON["Y"] = Y;
-  objectJSON["compass"] = (String)compass;
-  // convert object JSON to string
-  objectJSON.printTo(JSONtoString);
-  // send over websocket
-  webSocket.sendTXT(num,JSONtoString);
-  // publish mqtt broker
-  if (_isMQTT) client.publish(topic.c_str(), JSONtoString.c_str());
+  if (isMQTT) client.publish(_topic.c_str(), JSONtoString.c_str());
 }
