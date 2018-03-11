@@ -69,7 +69,7 @@ void Radio::init(bool isMQTT) {
             break;
         case WStype_CONNECTED:
             // send message to client
-            Radio::send(num, "{\"state\":\"connected\"}", false);
+            Radio::send(num, "connected", false);
             multimedia.display_update(SMILE);
             multimedia.movingLEDs(CRGB::Green);
             multimedia.movingLEDs(CRGB::DarkCyan);
@@ -142,7 +142,7 @@ void Radio::rxparse(JsonObject& rx, uint8_t num){
     }
     // Change UD and XY
     if (compass!=NULL) Radio::changeXY(num,coordX,coordY,compass);
-    if (ud!=NULL) Radio::changeUD(num,ud,"");
+    if (ud!=NULL) Radio::changeUD(num,ud,coordX,coordY,compass);
     // Execut commands
     if (_length>0) {
       while (*commands) {
@@ -169,18 +169,14 @@ void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
     executCommands(num, stop, "");
 }
 
-void Radio::changeUD(uint8_t num, const char* ud, String board) {
+void Radio::changeUD(uint8_t num, const char* ud, int x, int y, const char* compass) {
   String _ud = (String) ud;
-  multimedia.set_board(board);
   multimedia.display_ud(_ud);
   if (DEBUG_R) {
       Serial.println("Change UD");
   }
-  // execute commands to update state
-  char stop = 'S';
-  executCommands(num, stop, board);
-  //turn off all leds
-  multimedia.turnOFF();
+  // change position
+  changeXY(num, x, y, compass);
 }
 
 void Radio::executCommands(uint8_t num, char command, String board){
