@@ -22,10 +22,6 @@ See LICENSE.txt for details
 // Debug Radio
 #define DEBUG_R 1
 
-const char* commands;
-const char* ud;
-const char* compass;
-int coordX, coordY;
 String _topic = "";
 
 // MQTT client
@@ -65,7 +61,7 @@ void Radio::init(bool isMQTT) {
             if(DEBUG_R) {
               Serial.printf("[%u] Disconnected!\n", num);
             }
-            multimedia.display_update(PI_);
+            multimedia.display_update(HOME);
             break;
         case WStype_CONNECTED:
             // send message to client
@@ -111,23 +107,37 @@ void Radio::init(bool isMQTT) {
   if (_isMQTT) mqttConnection();
 }
 /**
- * parse de JSON obect and execute executCommands
+ * parse de JSON obect and call executCommands to execute commands
  * @param rx the JSON object received
  * @param num identified the websocket connection
  */
 void Radio::rxparse(JsonObject& rx, uint8_t num){
+    const char* commands;
+    const char* ud;
+    const char* compass;
+    int coordX, coordY;
+    const char* cells;
     unsigned int _length = 0;
+    unsigned int _lengthcells = 0;
+
     commands = rx["commands"];
     ud = rx["UD"];
     compass = rx["compass"];
     coordX = rx["X"];
     coordY = rx["Y"];
+    cells = rx["cells"];
+
     // number of commands
     if (commands != NULL) _length = strlen(commands);
+    // number of cells
+    if (cells != NULL) _lengthcells = strlen(cells);
+
     if (DEBUG_R) {
       Serial.println("Parse......");
-      Serial.printf("[commands]:");
+      Serial.print("[commands]:");
       if (commands!=NULL) Serial.println(commands); else Serial.println("no hay comandos");
+      Serial.print("[cells]:");
+      if (cells!=NULL) Serial.println(cells); else Serial.println("no hay estado celdas");
       Serial.printf("[UD]:");
       if (ud!=NULL) Serial.println(ud); else Serial.println("no hay cambio");
       /*Serial.print("[board]:");
@@ -142,16 +152,18 @@ void Radio::rxparse(JsonObject& rx, uint8_t num){
     }
     // Change UD and XY
     if (compass!=NULL) Radio::changeXY(num,coordX,coordY,compass);
-    if (ud!=NULL) Radio::changeUD(num,ud,coordX,coordY,compass);
+    if (ud!=NULL && compass!=NULL) Radio::changeUD(num,ud,coordX,coordY,compass);
     // Execut commands
-    if (_length>0) {
+    if (_length>0 && cells != NULL) {
       while (*commands) {
         if (DEBUG_R) {
-          Serial.print("dentro del while "); Serial.println(commands[0]);
+          Serial.print("dentro del while "); Serial.print(commands[0]); Serial.println(cells[0]);
         }
-        executCommands(num, commands[0], "");
-        // next command
+        //TODO check _lengthcells == _length, cells[0] if not defined it containts trash
+        executCommands(num, commands[0], cells[0]);
+        // next command nest cell
         commands++;
+        cells++;
       }
     }
 }
@@ -166,7 +178,7 @@ void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
     motors.setY(y);
     // execute commands to update state
     char stop = 'S';
-    executCommands(num, stop, "");
+    executCommands(num, stop, 'W');
 }
 
 void Radio::changeUD(uint8_t num, const char* ud, int x, int y, const char* compass) {
@@ -178,8 +190,13 @@ void Radio::changeUD(uint8_t num, const char* ud, int x, int y, const char* comp
   // change position
   changeXY(num, x, y, compass);
 }
-
-void Radio::executCommands(uint8_t num, char command, String board){
+/**
+ * Execute one command and send feedback to client
+ * @param num id of websocket client
+ * @param command to execute
+ * @param cell state: SMILE, DISGUST, SURPRISE, WAIT, HOME, SLEEP
+ */
+void Radio::executCommands(uint8_t num, char command, char cell){
   // ¿out of board?
   bool in;
   // send feedback
@@ -191,8 +208,7 @@ void Radio::executCommands(uint8_t num, char command, String board){
      }
      //turn off all leds
      multimedia.turnOFF();
-     //Happy because execute command
-     // multimedia.display_update(SMILE);
+
      // action for different commands
      switch (command) {
        case 'F':
@@ -230,6 +246,18 @@ void Radio::executCommands(uint8_t num, char command, String board){
     } // switch
     // display info
     multimedia.display_update(motors.getX(), motors.getY(), motors.getCardinal());
+    // display state
+    for (int i = 0; i < sizeof(_cell_state); i++) {
+      if (_cell_state[i] == cell) {
+          multimedia.display_update(i);
+          if (DEBUG_R) {
+            Serial.print("Update state:");
+            Serial.print((String)cell);
+            Serial.print("/");
+            Serial.println(i);
+          }
+      }
+    }
     /*
       // check cell
       int _celda = MAXCELL*motors.getX()+motors.getY();
@@ -270,12 +298,10 @@ void Radio::executCommands(uint8_t num, char command, String board){
           default:
             multimedia.display_update(WAIT);
         }*/
-
   // send coord to client ws and mqtt
   if (feedback) executing(num,command,motors.getX(),motors.getY(),motors.getCardinal());
   // stop robota anyway after executing
   motors.stop();
-  multimedia.display_update(WAIT);
 }
 /**
  *  send a executing message to client

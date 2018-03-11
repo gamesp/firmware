@@ -54,7 +54,6 @@ Multimedia::Multimedia(){
   myInfo.y = 0;
   myInfo.ud = "X";
   myInfo.msg = "Up!";
-  myInfo.board = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
   myInfo.idRobotta = "XXXX";
   //Init buzzer
   buzz.init();
@@ -137,37 +136,32 @@ void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
   }
 
 }
-// frame 0 - PI
-void drawFramePI(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  // draw an xbm image.
-  display->drawXbm(32, 0, pi_width, pi_height, pi_bits);
-}
-// frame 1 - SMILE
+// frame 0 - SMILE
 void drawFrameSmile(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   // draw an xbm image.
   display->drawXbm(32, 0, smile_width, smile_height, smile_bits);
 }
-// frame 2 - DISGUST
+// frame 1 - DISGUST
 void drawFrameDisgust(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   // draw an xbm image.
   display->drawXbm(32, 0, disgust_width, disgust_height, disgust_bits);
+}
+// frame 2 - Ok
+void drawFrameOK(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+  // draw an xbm image.
+  display->drawXbm(32, 0, ok_width, ok_height, ok_bits);
 }
 // frame 3 - WAIT
 void drawFrameWait(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   // draw an xbm image.
   display->drawXbm(32, 0, wait_width, wait_height, wait_bits);
 }
-// frame 4 - Ok
-void drawFrameOK(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  // draw an xbm image.
-  display->drawXbm(32, 0, ok_width, ok_height, ok_bits);
-}
-// frame 5 - HOME
+// frame 4 - HOME
 void drawFrameHome(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   // draw an xbm image.
   display->drawXbm(32, 0, home_width, home_height, home_bits);
 }
-// frame 6 - SLEEP
+// frame 5 - SLEEP
 void drawSleep(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   // draw an xbm image.
   display->drawXbm(32, 0, sleep_width, sleep_height, sleep_bits);
@@ -175,10 +169,10 @@ void drawSleep(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16
 
 // This array keeps function pointers to all frames
 // frames are the single views that slide in
-FrameCallback frames[]={drawFramePI, drawFrameSmile, drawFrameDisgust, drawFrameWait, drawFrameOK, drawFrameHome, drawSleep};
+FrameCallback frames[]={drawFrameSmile, drawFrameDisgust, drawFrameOK, drawFrameWait, drawFrameHome, drawSleep};
 
 // how many frames are there?
-int frameCount = 7;
+int frameCount = 6;
 
 // Overlays are statically drawn on top of a frame eg. a clock
 OverlayCallback overlays[]={msOverlay};
@@ -239,6 +233,8 @@ void Multimedia::display_heart(bool bum) {
       digitalWrite(D4, HIGH);
     }
   } else {
+    // mode sleep
+    display_update(SLEEP);
     // both blue leds off
     digitalWrite(LED_BUILTIN,HIGH);
     digitalWrite(D4, HIGH);
@@ -256,12 +252,4 @@ void Multimedia::buzzer_beep(uint16_t frequency) {
 
 void Multimedia::buzzer_rttl(const char* rttl){
   buzz.playRttl(rttl);
-}
-
-String Multimedia::get_board(){
-  return myInfo.board;
-}
-
-void Multimedia::set_board(String board){
-  myInfo.board = board;
 }

@@ -24,13 +24,12 @@
 #define MAX_BRIGHTNESS 16
 
 // the frames to display
-#define PI_ 0 // cell P
-#define SMILE 1 // cell A
-#define DISGUST 2 // out of board or cell X
-#define WAIT 3 // wait a command
-#define OK 4 //cell O
-#define HOME 5 //cell H
-#define SLEEP 6 //cell H
+#define SMILE 0 // cell A
+#define DISGUST 1 // cell X
+#define SURPRISE 2 //cell O
+#define WAIT 3 // cell W
+#define HOME 4 //cell H
+#define SLEEP 5 //cell Z
 
 
 // info to display
@@ -43,7 +42,6 @@ typedef struct _InfoDisplay {
   String msg="";
   uint8_t state=0;
   bool heart = false;
-  String board;
 } InfoDisplay ;
 
 class Multimedia
@@ -66,8 +64,6 @@ public:
   void buzzer_beep();
   void buzzer_beep(uint16_t frequency);
   void buzzer_rttl(const char* rttl);
-  String get_board();
-  void set_board(String board);
 
 private:
   // array of total leds

@@ -35,8 +35,8 @@ class Radio {
      void executing(uint8_t num, char command, int X, int Y, char compass);
      void rxparse(JsonObject& rx, uint8_t num = 9);
      void changeXY(uint8_t num, int x, int y, const char* compass);
-     void changeUD(uint8_t num, const char* ud, String board);
-     void executCommands(uint8_t num, char commands, String board);
+     void changeUD(uint8_t num, const char* ud, int x, int y, const char* compass);
+     void executCommands(uint8_t num, char commands, char cell = 'A');
      void mqttConnection();
      void reconnect();
 
@@ -50,6 +50,8 @@ class Radio {
      String _idRobota;
      String _root = "/gamesp";
      bool _isMQTT = false;
+     // Array of states
+     char _cell_state[6] = {'A','X','O','W','H','Z'};
 };
 
 #endif // _RADIO_H
