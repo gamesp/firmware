@@ -20,8 +20,6 @@
 #define LED_L 3
 #define LED_S 4
 
-#define NOWEBSOCK 9
-
 class Radio {
   public:
     /**
@@ -31,12 +29,12 @@ class Radio {
      void init(bool isMQTT);
      void loop(bool isMQTT);
      void broadcast(String msg, bool isMQTT);
-     void send(uint8_t num, String msg, bool isMQTT);
-     void executing(uint8_t num, char command, int X, int Y, char compass);
-     void rxparse(JsonObject& rx, uint8_t num = 9);
-     void changeXY(uint8_t num, int x, int y, const char* compass);
-     void changeUD(uint8_t num, const char* ud, int x, int y, const char* compass);
-     void executCommands(uint8_t num, char commands, char cell = 'A');
+     void send(String msg, bool isMQTT);
+     void executing(char command, int X, int Y, char compass);
+     void rxparse(JsonObject& rx);
+     void changeXY(int x, int y, const char* compass);
+     void changeUD(const char* ud, int x, int y, const char* compass);
+     void executCommands(char commands, char cell = 'A');
      void mqttConnection();
      void reconnect();
 

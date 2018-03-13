@@ -65,7 +65,7 @@ void Radio::init(bool isMQTT) {
             break;
         case WStype_CONNECTED:
             // send message to client
-            Radio::send(num, "connected", false);
+            Radio::send("connected", false);
             multimedia.display_update(SMILE);
             multimedia.movingLEDs(CRGB::Green);
             multimedia.movingLEDs(CRGB::DarkCyan);
@@ -98,7 +98,7 @@ void Radio::init(bool isMQTT) {
               return;
             }
             // parse the msg received
-            rxparse(rxWS, num);
+            rxparse(rxWS);
             break;
     } // switch type of WS
   });
@@ -111,7 +111,7 @@ void Radio::init(bool isMQTT) {
  * @param rx the JSON object received
  * @param num identified the websocket connection
  */
-void Radio::rxparse(JsonObject& rx, uint8_t num){
+void Radio::rxparse(JsonObject& rx){
     const char* commands;
     const char* ud;
     const char* compass;
@@ -140,8 +140,6 @@ void Radio::rxparse(JsonObject& rx, uint8_t num){
       if (cells!=NULL) Serial.println(cells); else Serial.println("no hay estado celdas");
       Serial.printf("[UD]:");
       if (ud!=NULL) Serial.println(ud); else Serial.println("no hay cambio");
-      /*Serial.print("[board]:");
-      if (rx["board"]!=NULL) Serial.println(rx["board"].as<String>()); else Serial.println("no hay board");*/
       Serial.print("[X]:");
       Serial.println(coordX);
       Serial.print("[Y]:");
@@ -151,8 +149,8 @@ void Radio::rxparse(JsonObject& rx, uint8_t num){
       Serial.println();
     }
     // Change UD and XY
-    if (compass!=NULL) Radio::changeXY(num,coordX,coordY,compass);
-    if (ud!=NULL && compass!=NULL) Radio::changeUD(num,ud,coordX,coordY,compass);
+    if (compass!=NULL) Radio::changeXY(coordX,coordY,compass);
+    if (ud!=NULL && compass!=NULL) Radio::changeUD(ud,coordX,coordY,compass);
     // Execut commands
     if (_length>0 && cells != NULL) {
       while (*commands) {
@@ -160,7 +158,7 @@ void Radio::rxparse(JsonObject& rx, uint8_t num){
           Serial.print("dentro del while "); Serial.print(commands[0]); Serial.println(cells[0]);
         }
         //TODO check _lengthcells == _length, cells[0] if not defined it containts trash
-        executCommands(num, commands[0], cells[0]);
+        executCommands(commands[0], cells[0]);
         // next command nest cell
         commands++;
         cells++;
@@ -168,7 +166,7 @@ void Radio::rxparse(JsonObject& rx, uint8_t num){
     }
 }
 
-void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
+void Radio::changeXY(int x, int y, const char* compass) {
     if (DEBUG_R) {
         Serial.println("Change XY,compass");
     }
@@ -178,17 +176,17 @@ void Radio::changeXY(uint8_t num, int x, int y, const char* compass) {
     motors.setY(y);
     // execute commands to update state
     char stop = 'S';
-    executCommands(num, stop, 'W');
+    executCommands(stop, 'W');
 }
 
-void Radio::changeUD(uint8_t num, const char* ud, int x, int y, const char* compass) {
+void Radio::changeUD(const char* ud, int x, int y, const char* compass) {
   String _ud = (String) ud;
   multimedia.display_ud(_ud);
   if (DEBUG_R) {
       Serial.println("Change UD");
   }
   // change position
-  changeXY(num, x, y, compass);
+  changeXY(x, y, compass);
 }
 /**
  * Execute one command and send feedback to client
@@ -196,7 +194,7 @@ void Radio::changeUD(uint8_t num, const char* ud, int x, int y, const char* comp
  * @param command to execute
  * @param cell state: SMILE, DISGUST, SURPRISE, WAIT, HOME, SLEEP
  */
-void Radio::executCommands(uint8_t num, char command, char cell){
+void Radio::executCommands(char command, char cell){
   // ¿out of board?
   bool in;
   // send feedback
@@ -258,55 +256,15 @@ void Radio::executCommands(uint8_t num, char command, char cell){
           }
       }
     }
-    /*
-      // check cell
-      int _celda = MAXCELL*motors.getX()+motors.getY();
-      String _board = multimedia.get_board();
-      char est_celda = _board[MAXCELL*motors.getX()+motors.getY()];
-        switch (est_celda) {
-          // P -> PI
-          case 'P':
-            multimedia.display_update(PI_);
-            multimedia.buzzer_rttl(RTTL_INTEL);
-            break;
-          // A -> nothing
-          case 'A':
-            multimedia.display_update(SMILE);
-            break;
-          // X -> wrong
-          case 'X':
-            multimedia.display_update(DISGUST);
-            multimedia.buzzer_rttl(RTTL_MOSAIC);
-            break;
-          // W -> wait
-          case 'W':
-            multimedia.display_update(WAIT);
-            break;
-          // O -> ok
-          case 'O':
-            multimedia.display_update(OK);
-            multimedia.buzzer_rttl(RTTL_FIDO);
-            break;
-          // H -> Home
-          case 'H':
-            multimedia.display_update(HOME);
-            break;
-          case 'Z':
-            multimedia.display_update(SLEEP);
-            multimedia.sleep(CRGB::BlueViolet);
-            break;
-          default:
-            multimedia.display_update(WAIT);
-        }*/
   // send coord to client ws and mqtt
-  if (feedback) executing(num,command,motors.getX(),motors.getY(),motors.getCardinal());
+  if (feedback) executing(command,motors.getX(),motors.getY(),motors.getCardinal());
   // stop robota anyway after executing
   motors.stop();
 }
 /**
  *  send a executing message to client
  */
-void Radio::executing(uint8_t num, char comando, int X, int Y, char compass){
+void Radio::executing(char comando, int X, int Y, char compass){
   // to send object via websocket
   String JSONtoString;
   // JSON object
@@ -324,8 +282,8 @@ void Radio::executing(uint8_t num, char comando, int X, int Y, char compass){
     //objectJSONex.prettyPrintTo(Serial);
     Serial.println(JSONtoString);
   }
-  // send over websocket
-  if (num != NOWEBSOCK) webSocket.sendTXT(num,JSONtoString);
+  // send websocket broadcast
+  webSocket.broadcastTXT(JSONtoString);
   // publish mqtt broker
   String topic_executing = _topic + "/executing";
   char buffer[objectJSONex.measureLength() + 1];
@@ -342,7 +300,6 @@ void Radio::mqttConnection() {
     }
     client.setServer(mqtt_server, mqtt_port);
     client.setCallback([&](char* topic, byte* payload, unsigned int length) {
-      int num = NOWEBSOCK;
       // ¿out of board?
       bool in;
       bool feedback = true;
@@ -454,7 +411,7 @@ void Radio::broadcast(String msg, bool isMQTT){
  * @param num id of client
  * @param msg string with information
  */
-void Radio::send(uint8_t num, String msg, bool isMQTT){
+void Radio::send(String msg, bool isMQTT){
   String JSONtoString;
   // JSON object
   StaticJsonBuffer<200> jsonBuffer;
@@ -464,7 +421,7 @@ void Radio::send(uint8_t num, String msg, bool isMQTT){
   // convert object JSON to string
   objectJSON.printTo(JSONtoString);
   // send ws message
-  if (num != NOWEBSOCK) webSocket.sendTXT(num,JSONtoString);
+  webSocket.broadcastTXT(JSONtoString);
   // send mqtt message
   if (isMQTT) client.publish(_topic.c_str(), JSONtoString.c_str());
 }

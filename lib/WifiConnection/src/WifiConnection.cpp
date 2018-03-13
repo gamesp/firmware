@@ -37,7 +37,9 @@ void WifiConnection::onlyAP() {
     Serial.print("AP:");
     Serial.println(_AP_NameString);
   }
-  WiFi.softAP(_AP_NameString);
+  // ssid, passwd (null for open wifi), channel, ssid_hidden (0 broadcast, 1 hidden), max_connection
+  // only one client, only one connection
+  WiFi.softAP(_AP_NameString, NULL, 1, 0, 1);
   if (DEBUG_W) {
     Serial.println("WebSocket server started");
     Serial.print("Ip: ");
