@@ -9,6 +9,9 @@
 #include "Motion.h"
 #include "Multimedia.h"
 #include "WifiConnection.h"
+// FOTA update
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
 
 // state of leds
 #define ON 1  // true
@@ -37,6 +40,8 @@ class Radio {
      void executCommands(char commands, char cell = 'A');
      void mqttConnection();
      void reconnect();
+     void checkUpdates();
+     void infoDisplay();
 
      // listen websocket at port 81
      WebSocketsServer webSocket = WebSocketsServer(81);

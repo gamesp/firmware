@@ -109,7 +109,6 @@ void Radio::init(bool isMQTT) {
 /**
  * parse de JSON obect and call executCommands to execute commands
  * @param rx the JSON object received
- * @param num identified the websocket connection
  */
 void Radio::rxparse(JsonObject& rx){
     const char* commands;
@@ -119,6 +118,8 @@ void Radio::rxparse(JsonObject& rx){
     const char* cells;
     unsigned int _length = 0;
     unsigned int _lengthcells = 0;
+    const char* update;
+    const char* info;
 
     commands = rx["commands"];
     ud = rx["UD"];
@@ -126,6 +127,10 @@ void Radio::rxparse(JsonObject& rx){
     coordX = rx["X"];
     coordY = rx["Y"];
     cells = rx["cells"];
+    // require ota update
+    update = rx["update"];
+    // require info version and ip
+    info = rx["info"];
 
     // number of commands
     if (commands != NULL) _length = strlen(commands);
@@ -134,6 +139,10 @@ void Radio::rxparse(JsonObject& rx){
 
     if (DEBUG_R) {
       Serial.println("Parse......");
+      Serial.print("[info]:");
+      if (info!=NULL) Serial.println(info); else Serial.println("no info");
+      Serial.print("[update]:");
+      if (update!=NULL) Serial.println(update); else Serial.println("no update");
       Serial.print("[commands]:");
       if (commands!=NULL) Serial.println(commands); else Serial.println("no hay comandos");
       Serial.print("[cells]:");
@@ -164,6 +173,10 @@ void Radio::rxparse(JsonObject& rx){
         cells++;
       }
     }
+    // check updates
+    if (update != NULL) checkUpdates();
+    // display info (version, ip, etc...)
+    if (info != NULL) infoDisplay();
 }
 
 void Radio::changeXY(int x, int y, const char* compass) {
@@ -290,7 +303,6 @@ void Radio::executing(char comando, int X, int Y, char compass){
   objectJSONex.printTo(buffer, sizeof(buffer));
   client.publish(topic_executing.c_str(), buffer, true);
 }
-
 /**
  * Mode MQTT
  */
@@ -425,3 +437,64 @@ void Radio::send(String msg, bool isMQTT){
   // send mqtt message
   if (isMQTT) client.publish(_topic.c_str(), JSONtoString.c_str());
 }
+/**
+ * Check for update via OTA
+ */
+void Radio::checkUpdates() {
+     // display update Mode
+     multimedia.display_update(NONE);
+     // actual version installed
+     const int iFW_VERSION = 201;
+     int major = iFW_VERSION/100;
+     int minor = (iFW_VERSION%100)/10;
+     int revision = (iFW_VERSION%100)%10;
+     String sFW_VERSION = String(major) + '.' + String(minor) + '.' + String(revision);
+     const char* firmwareUrl = "http://gamesp.danielcastelao.org/versions/firmware.bin";
+     const char* versionUrl = "http://gamesp.danielcastelao.org/versions/version.txt";
+     HTTPClient httpClient;
+     Serial.println( "Checking for firmware updates." );
+     httpClient.begin( versionUrl );
+     int httpCode = httpClient.GET();
+     Serial.print("Http Code: ");
+     Serial.println(httpCode);
+     if( httpCode == 200 ) {
+          String snewFW_VERSION = httpClient.getString();
+          int inewFW_VERSION = snewFW_VERSION.toInt();
+          major = inewFW_VERSION/100;
+          minor = (inewFW_VERSION%100)/10;
+          revision = (inewFW_VERSION%100)%10;
+          snewFW_VERSION = String(major) + '.' + String(minor) + '.' + String(revision);
+          Serial.print( "Current firmware version: " );
+          Serial.println( iFW_VERSION );
+          Serial.print( "Available firmware version: " );
+          Serial.println( inewFW_VERSION );
+          String _update = sFW_VERSION + String(">") + snewFW_VERSION;
+          multimedia.display_ud(_update);
+          if( inewFW_VERSION > iFW_VERSION ) {
+              Serial.println( "Preparing to update." );
+              t_httpUpdate_return ret = ESPhttpUpdate.update( firmwareUrl );
+              //t_httpUpdate_return ret = HTTP_UPDATE_OK;
+              switch (ret) {
+                  case HTTP_UPDATE_FAILED:
+                    Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+                    //check = false;
+                    break;
+                  case HTTP_UPDATE_NO_UPDATES:
+                    Serial.println("HTTP_UPDATE_NO_UPDATES");
+                    break;
+                 case HTTP_UPDATE_OK:
+                    Serial.println("HTTP_UPDATE_OK");
+                    break;
+            }
+          }
+      }
+      httpClient.end();
+ }
+/**
+ * Display information
+ */
+void Radio::infoDisplay() {
+    // display update Mode
+    multimedia.display_update(NONE);
+    // TODO set info on myInfo and display
+ }

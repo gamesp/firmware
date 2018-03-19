@@ -30,19 +30,22 @@
 #define WAIT 3 // cell W
 #define HOME 4 //cell H
 #define SLEEP 5 //cell Z
+#define NONE 6 // do not display smile
 
 
 // info to display
 typedef struct _InfoDisplay {
-  String idRobotta="DOMOTTA-XXXX";
-  int x=0;
-  int y=0;
-  char compass='N';
-  String ud="X";
-  String msg="";
-  uint8_t state=0;
+  String idRobotta = "XXXX";
+  int x = 5;
+  int y = 5;
+  char compass = 'N';
+  String ud = "1";
+  String msg = "";
+  uint8_t state = HOME;
   bool heart = false;
-} InfoDisplay ;
+  String version = "0.0.0";
+  String newversion = "0.0.0";
+} InfoDisplay;
 
 class Multimedia
 {

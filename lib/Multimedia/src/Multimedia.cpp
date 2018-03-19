@@ -108,9 +108,21 @@ void Multimedia::sleep(CRGB color) {
 
 void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
     display->flipScreenVertically();
-  if (!myInfo.ud.equals("Zleep")){
-    display->setContrast('z');
     display->setFont(ArialMT_Plain_10);
+    display->setContrast('z');
+  if (myInfo.ud.equals("Zleep") ){
+      display->setContrast('0');
+  } else if (myInfo.ud.equals("Update")){
+     display->drawString(0, 24, myInfo.version);
+     display->drawString(0, 36, String("New ")+ myInfo.newversion);
+     display->drawString(0, 48, myInfo.idRobotta);
+  } else if (myInfo.ud.equals("Info")) {
+     display->clear();
+     display->setTextAlignment(TEXT_ALIGN_LEFT);
+     display->drawString(0, 24, myInfo.version);
+     display->drawString(0, 36, String("New ")+ myInfo.newversion);
+     display->drawString(0, 48, myInfo.idRobotta);
+  } else {
     String coord, ud;
     ud = "UD:";
     ud.concat(myInfo.ud);
@@ -131,10 +143,7 @@ void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
     // display mac macAddress
     display->setTextAlignment(TEXT_ALIGN_LEFT);
     display->drawString(0, 48, myInfo.idRobotta);
-  } else {
-    display->setContrast('0');
   }
-
 }
 // frame 0 - SMILE
 void drawFrameSmile(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
@@ -166,13 +175,19 @@ void drawSleep(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16
   // draw an xbm image.
   display->drawXbm(32, 0, sleep_width, sleep_height, sleep_bits);
 }
+// frame 6 - NONE
+void drawNone(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+  // draw an xbm image.
+  display->clear();
+  display->setTextAlignment(TEXT_ALIGN_LEFT);
+}
 
 // This array keeps function pointers to all frames
 // frames are the single views that slide in
-FrameCallback frames[]={drawFrameSmile, drawFrameDisgust, drawFrameOK, drawFrameWait, drawFrameHome, drawSleep};
+FrameCallback frames[]={drawFrameSmile, drawFrameDisgust, drawFrameOK, drawFrameWait, drawFrameHome, drawSleep, drawNone};
 
 // how many frames are there?
-int frameCount = 6;
+int frameCount = 7;
 
 // Overlays are statically drawn on top of a frame eg. a clock
 OverlayCallback overlays[]={msOverlay};
