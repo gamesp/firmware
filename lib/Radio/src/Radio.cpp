@@ -18,6 +18,8 @@ See LICENSE.txt for details
 #include "Radio.h"
 // broker host and port
 #include "brokerparam.h"
+// ssid and password
+#include "wifiparam.h"
 
 // Debug Radio
 #define DEBUG_R 1
@@ -30,10 +32,8 @@ PubSubClient client(espClient);
 
 /**
  * init websocket server
- * @param isMQTT if true then init connection to broker MQTT
  */
-void Radio::init(bool isMQTT) {
-  _isMQTT = isMQTT;
+void Radio::init() {
   // stop motor reset output
   motors.stop();
   //define id with mac adress ssid = DOMOTTA-XXXX
@@ -102,9 +102,10 @@ void Radio::init(bool isMQTT) {
             break;
     } // switch type of WS
   });
-
-  // init mqtt Wifi Connection
-  if (_isMQTT) mqttConnection();
+  // Is there a wifi?
+  _isWifi = setup_wifi();
+  // init mqtt if there is a Wifi Connection
+  if (_isMQTT && _isWifi) mqttConnection();
 }
 /**
  * parse de JSON obect and call executCommands to execute commands
@@ -379,14 +380,14 @@ void Radio::reconnect() {
   }
 }
 /**
- * loop websocket server and update ui display
+ * loop websocket server and mqtt
+ * update ui display
  */
-void Radio::loop(bool isMQTT) {
+void Radio::loop() {
    // websocket loop
    webSocket.loop();
    // mqtt loop
-   //
-   if (isMQTT) {
+   if (_isMQTT) {
      if (!client.connected()) {
        reconnect();
      }
@@ -398,7 +399,7 @@ void Radio::loop(bool isMQTT) {
 /**
   *  send a broadcast, before must create JSON
   */
-void Radio::broadcast(String msg, bool isMQTT){
+void Radio::broadcast(String msg){
   multimedia.display_heart(true);
   multimedia.display_update();
   String JSONtoString;
@@ -413,7 +414,7 @@ void Radio::broadcast(String msg, bool isMQTT){
   webSocket.broadcastTXT(JSONtoString);
   // publish mqtt
   String topic_state = _topic + "/state";
-  if (isMQTT) client.publish(topic_state.c_str(), JSONtoString.c_str());
+  if (_isMQTT) client.publish(topic_state.c_str(), JSONtoString.c_str());
   // turn off heart
   multimedia.display_heart(false);
   multimedia.display_update();
@@ -497,4 +498,36 @@ void Radio::infoDisplay() {
     // display update Mode
     multimedia.display_update(NONE);
     // TODO set info on myInfo and display
+ }
+/**
+ * Check wifi param and try to connected
+ * return true if connection up
+ */
+ bool Radio::setup_wifi() {
+   uint8_t count = 0;
+   delay(10);
+   // We start by connecting to a WiFi network
+   Serial.println();
+   Serial.print("Connecting to ");
+   Serial.println(ssid);
+
+   WiFi.begin(ssid, password);
+
+   while (WiFi.status() != WL_CONNECTED) {
+     delay(500);
+     count++;
+     Serial.print(".");
+     // Three intents
+     if (count > 3) return false;
+   }
+   randomSeed(micros());
+
+   Serial.println("");
+   Serial.println("WiFi connected");
+   Serial.println("IP address: ");
+   Serial.println(WiFi.localIP());
+
+   WiFi.mode(WIFI_AP_STA);
+
+   return true;
  }

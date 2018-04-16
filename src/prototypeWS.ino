@@ -20,16 +20,12 @@
 #include "Config.h"
 #include "WifiConnection.h"
 #include "Radio.h"
-// ssid and password
-#include "wifiparam.h"
+
 
 // wifi Configuration
 WifiConnection wifiRobota;
 // connection
 Radio radio;
-
-// TODO if exist wifi then connect to broker
-bool isMQTT = true;
 
 void setup () {
   // init de serial comunication
@@ -39,11 +35,8 @@ void setup () {
   pinMode(D4,OUTPUT);
   // Mode access point to configure
   wifiRobota.onlyAP();
-
-  // TODO is there a wifi?
-  setup_wifi();
-  // init websocket server TODO and MQTT if wifi connected
-  radio.init(isMQTT);
+  // init websocket server
+  radio.init();
 }
 
 long lastMsg = millis();
@@ -51,7 +44,7 @@ int value = 0;
 
 void loop() {
   String msg;
-  radio.loop(isMQTT);
+  radio.loop();
   long now = millis();
   if (now - lastMsg > 7000) {
     lastMsg = now;
@@ -59,30 +52,6 @@ void loop() {
     msg = "ON ";
     msg += value;
     // keep alive, server to everybody
-    radio.broadcast(msg, isMQTT);
+    radio.broadcast(msg);
   }
-}
-
-void setup_wifi() {
-
-  delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  randomSeed(micros());
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-
-  WiFi.mode(WIFI_AP_STA);
 }

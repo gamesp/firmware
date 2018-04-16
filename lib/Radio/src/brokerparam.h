@@ -1,3 +1,3 @@
 // MQTT broker
-const char* mqtt_server = "broker.mqtt-dashboard.com";
-int mqtt_port = 1883;
+const char* mqtt_server = "danielcastelao.org";
+int mqtt_port = 5000;
