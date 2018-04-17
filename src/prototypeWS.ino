@@ -29,7 +29,7 @@ WifiConnection wifiRobota;
 Radio radio;
 
 // if exist wifi then connect to broker
-bool isMQTT = true;
+bool isMQTT = false;
 
 void setup () {
   // init de serial comunication
@@ -40,7 +40,8 @@ void setup () {
   // Mode access point to configure
   wifiRobota.onlyAP();
   // TODO there is wifi?
-  setup_wifi();
+  //change to WiFiManager
+  //setup_wifi();
   // init websocket server TODO and MQTT if wifi connected
   radio.init(isMQTT);
 }
@@ -62,6 +63,8 @@ void loop() {
   }
 }
 
+/*
+Change to WiFiManager
 void setup_wifi() {
 
   delay(10);
@@ -82,4 +85,4 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-}
+}*/

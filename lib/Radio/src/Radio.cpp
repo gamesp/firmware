@@ -39,7 +39,11 @@ void Radio::init(bool isMQTT) {
   //define id with mac adress ssid = DOMOTTA-XXXX
   WifiConnection wificonnection;
   _idRobota = wificonnection.getSSID().substring(8);
-  _topic = _root + "/" + _idRobota;
+  // init mqtt Wifi Connection
+  if (isMQTT) {
+      _topic = _root + "/" + _idRobota;
+      mqttConnection();
+  }
   //init display
   multimedia.display_init(_idRobota);
   // start webSocket server
@@ -102,9 +106,6 @@ void Radio::init(bool isMQTT) {
             break;
     } // switch type of WS
   });
-
-  // init mqtt Wifi Connection
-  if (_isMQTT) mqttConnection();
 }
 /**
  * parse de JSON obect and call executCommands to execute commands
@@ -284,18 +285,20 @@ void Radio::executing(char comando, int X, int Y, char compass){
   }
   // send websocket broadcast
   webSocket.broadcastTXT(JSONtoString);
-  // publish mqtt broker
-  String topic_executing = _topic + "/executing";
-  char buffer[objectJSONex.measureLength() + 1];
-  objectJSONex.printTo(buffer, sizeof(buffer));
-  client.publish(topic_executing.c_str(), buffer, true);
+  if (_isMQTT) {
+      // publish mqtt broker
+      String topic_executing = _topic + "/executing";
+      char buffer[objectJSONex.measureLength() + 1];
+      objectJSONex.printTo(buffer, sizeof(buffer));
+      client.publish(topic_executing.c_str(), buffer, true);
+  }
 }
 
 /**
  * Mode MQTT
  */
 void Radio::mqttConnection() {
-    if (DEBUG_W) {
+    if (DEBUG_R) {
       Serial.print("MQTT connection");
     }
     client.setServer(mqtt_server, mqtt_port);
@@ -357,7 +360,7 @@ void Radio::reconnect() {
       client.subscribe(topic_commands.c_str());
       _isMQTT = true;
     } else {
-      Serial.print("failed, rc=");
+      Serial.print("Failed MQTT connection, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
@@ -373,7 +376,6 @@ void Radio::loop(bool isMQTT) {
    // websocket loop
    webSocket.loop();
    // mqtt loop
-   //
    if (isMQTT) {
      if (!client.connected()) {
        reconnect();
@@ -399,9 +401,11 @@ void Radio::broadcast(String msg, bool isMQTT){
   objectJSON.printTo(JSONtoString);
   // send websocket broadcast
   webSocket.broadcastTXT(JSONtoString);
-  // publish mqtt
-  String topic_state = _topic + "/state";
-  if (isMQTT) client.publish(topic_state.c_str(), JSONtoString.c_str());
+  if (isMQTT) {
+      // publish mqtt
+      String topic_state = _topic + "/state";
+      client.publish(topic_state.c_str(), JSONtoString.c_str());
+  }
   // turn off heart
   multimedia.display_heart(false);
   multimedia.display_update();
@@ -423,5 +427,7 @@ void Radio::send(String msg, bool isMQTT){
   // send ws message
   webSocket.broadcastTXT(JSONtoString);
   // send mqtt message
-  if (isMQTT) client.publish(_topic.c_str(), JSONtoString.c_str());
+  if (isMQTT) {
+      client.publish(_topic.c_str(), JSONtoString.c_str());
+  }
 }
