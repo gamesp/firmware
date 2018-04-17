@@ -28,7 +28,12 @@ WifiConnection::WifiConnection() {
     _NameString += "-" + String(_mac[4],HEX) + String(_mac[5],HEX);
     // convert string to const char *
     _AP_NameString = _NameString.c_str();
-};
+  };
+/**
+ * WifiManager setup
+ */
+void WifiConnection::wifiSetup(){
+}
 /**
  * Mode AP
  */
@@ -41,7 +46,7 @@ void WifiConnection::onlyAP() {
   // only one client, only one connection
   WiFi.softAP(_AP_NameString, NULL, 1, 0, 1);
   if (DEBUG_W) {
-    Serial.println("WebSocket server started");
+    Serial.println("Access Point started");
     Serial.print("Ip: ");
     WiFi.softAPIP();
   }
@@ -49,4 +54,7 @@ void WifiConnection::onlyAP() {
 }
 String WifiConnection::getSSID() {
   return _NameString;
+}
+const char * WifiConnection::getAP() {
+  return _AP_NameString;
 }

@@ -2,6 +2,11 @@
 #define _WIFICONNECTION_H
 
 #include <ESP8266WiFi.h>
+
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>
+
 #include <PubSubClient.h>
 #include <stdint.h>
 
@@ -21,9 +26,17 @@ class WifiConnection {
       */
      void onlyAP();
      /**
+      * WiFiMAnager setup
+      */
+     void wifiSetup();
+     /**
       * return ssid, the same to id of robota
       */
       String getSSID();
+      /**
+       * return AP, DOMOTTA-XXXX (mac)
+       */
+      const char * getAP();
 
  private:
    String _NameString = "DOMOTTA";
