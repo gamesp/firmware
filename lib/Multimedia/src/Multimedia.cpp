@@ -131,6 +131,7 @@ void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
     // display mac macAddress
     display->setTextAlignment(TEXT_ALIGN_LEFT);
     display->drawString(0, 48, myInfo.idRobotta);
+    display->drawString(0, 24, myInfo.wifi?"Wifi":"Wifi no");
   } else {
     display->setContrast('0');
   }
@@ -252,4 +253,8 @@ void Multimedia::buzzer_beep(uint16_t frequency) {
 
 void Multimedia::buzzer_rttl(const char* rttl){
   buzz.playRttl(rttl);
+}
+
+void Multimedia::setWifi(bool wifi){
+    myInfo.wifi = wifi;
 }

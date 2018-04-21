@@ -15,42 +15,97 @@ USA.
 See LICENSE.txt for details
 */
 
-#include "WifiConnection.h"
 #include <Arduino.h>
+#include "WifiConnection.h"
 
 /**
  * Constructor
  */
 WifiConnection::WifiConnection() {
+    WiFi.mode(WIFI_OFF);
+    WiFi.mode(WIFI_AP_STA);
     // take mac address
     WiFi.macAddress(_mac);
     // append the two final hex of mac
     _NameString += "-" + String(_mac[4],HEX) + String(_mac[5],HEX);
     // convert string to const char *
     _AP_NameString = _NameString.c_str();
+    // up Access Point
+    modeAP();
   };
-/**
- * WifiManager setup
- */
-void WifiConnection::wifiSetup(){
+  /**
+   * Wifi setup
+   * @return true if wifi connected, false if not
+   */
+bool WifiConnection::wifiSetup(const char * ssid, const char * pass){
+    Serial.println("\n\tConnecting to Wi-Fi");
+    Serial.println(ssid);
+    Serial.println(pass);
+    WiFi.begin(ssid, pass);
+    byte tray =0;
+    bool success = false;
+    int connRes = WiFi.waitForConnectResult();
+    if (connRes != WL_CONNECTED) {
+        Serial.println("[WiFi] Connection failed");
+        Serial.println(connectionStatus( WiFi.status() ).c_str() );
+        WiFi.disconnect();
+        modeAP();
+        return false;
+    } else {
+        Serial.println("[WiFi] Connected");
+        return true;
+    }
+}
+
+/********************************************************
+/*  WiFi Connection Status                              *
+/********************************************************/
+String WifiConnection::connectionStatus ( int which )
+{
+    switch ( which )
+    {
+        case WL_CONNECTED:
+            return "Connected";
+            break;
+
+        case WL_NO_SSID_AVAIL:
+            return "Network not availible";
+            break;
+
+        case WL_CONNECT_FAILED:
+            return "Wrong password";
+            break;
+
+        case WL_IDLE_STATUS:
+            return "Idle status";
+            break;
+
+        case WL_DISCONNECTED:
+            return "Disconnected";
+            break;
+
+        default:
+            return "Unknown";
+            break;
+    }
 }
 /**
  * Mode AP
  */
-void WifiConnection::onlyAP() {
-  if (DEBUG_W) {
+void WifiConnection::modeAP() {
+
     Serial.print("AP:");
     Serial.println(_AP_NameString);
-  }
+
   // ssid, passwd (null for open wifi), channel, ssid_hidden (0 broadcast, 1 hidden), max_connection
   // only one client, only one connection
   WiFi.softAP(_AP_NameString, NULL, 1, 0, 1);
-  if (DEBUG_W) {
+
     Serial.println("Access Point started");
     Serial.print("Ip: ");
-    WiFi.softAPIP();
-  }
-  delay(100);
+    Serial.println(WiFi.softAPIP());
+
+  delay(500);
 }
 String WifiConnection::getSSID() {
   return _NameString;

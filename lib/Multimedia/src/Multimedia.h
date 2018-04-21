@@ -42,6 +42,7 @@ typedef struct _InfoDisplay {
   String msg="";
   uint8_t state=0;
   bool heart = false;
+  bool wifi = false;
 } InfoDisplay ;
 
 class Multimedia
@@ -64,6 +65,8 @@ public:
   void buzzer_beep();
   void buzzer_beep(uint16_t frequency);
   void buzzer_rttl(const char* rttl);
+  void setWifi(bool wifi);
+
 
 private:
   // array of total leds

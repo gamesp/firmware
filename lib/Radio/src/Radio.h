@@ -26,10 +26,10 @@ class Radio {
      * Constructor
      */
      Radio(){};
-     void init(bool isMQTT);
-     void loop(bool isMQTT);
-     void broadcast(String msg, bool isMQTT);
-     void send(String msg, bool isMQTT);
+     void init();
+     void loop();
+     void broadcast(String msg);
+     void send(String msg);
      void executing(char command, int X, int Y, char compass);
      void rxparse(JsonObject& rx);
      void changeXY(int x, int y, const char* compass);
@@ -40,14 +40,18 @@ class Radio {
 
      // listen websocket at port 81
      WebSocketsServer webSocket = WebSocketsServer(81);
+     // wificonnection to setup wifi and mqtt_port
+     WifiConnection wificonnection;
      // Motors of robota to mov
      Motion motors;
      // Sound and lights
      Multimedia multimedia;
+     // wifi and mqtt state
+     bool _isMQTT = false;
+     bool _isWIFI = false;
    private:
      String _idRobota;
      String _root = "/gamesp";
-     bool _isMQTT = false;
      // Array of states
      char _cell_state[6] = {'A','X','O','W','H','Z'};
 };

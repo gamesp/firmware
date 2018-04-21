@@ -32,15 +32,15 @@ PubSubClient client(espClient);
  * init websocket server
  * @param isMQTT if true then init connection to broker MQTT
  */
-void Radio::init(bool isMQTT) {
-  _isMQTT = isMQTT;
+void Radio::init() {
   // stop motor reset output
   motors.stop();
+  //start AP
+  wificonnection.modeAP();
   //define id with mac adress ssid = DOMOTTA-XXXX
-  WifiConnection wificonnection;
   _idRobota = wificonnection.getSSID().substring(8);
   // init mqtt Wifi Connection
-  if (isMQTT) {
+  if (_isMQTT) {
       _topic = _root + "/" + _idRobota;
       mqttConnection();
   }
@@ -69,7 +69,7 @@ void Radio::init(bool isMQTT) {
             break;
         case WStype_CONNECTED:
             // send message to client
-            Radio::send("connected", false);
+            Radio::send("connected");
             multimedia.display_update(SMILE);
             multimedia.movingLEDs(CRGB::Green);
             multimedia.movingLEDs(CRGB::DarkCyan);
@@ -120,6 +120,7 @@ void Radio::rxparse(JsonObject& rx){
     const char* cells;
     unsigned int _length = 0;
     unsigned int _lengthcells = 0;
+    const char* wifirequest;
 
     commands = rx["commands"];
     ud = rx["UD"];
@@ -127,6 +128,7 @@ void Radio::rxparse(JsonObject& rx){
     coordX = rx["X"];
     coordY = rx["Y"];
     cells = rx["cells"];
+    wifirequest = rx["wifi"];
 
     // number of commands
     if (commands != NULL) _length = strlen(commands);
@@ -135,6 +137,8 @@ void Radio::rxparse(JsonObject& rx){
 
     if (DEBUG_R) {
       Serial.println("Parse......");
+      Serial.print("[wifi]:");
+      if (wifirequest!=NULL) Serial.println(wifirequest); else Serial.println("no setup wifi");
       Serial.print("[commands]:");
       if (commands!=NULL) Serial.println(commands); else Serial.println("no hay comandos");
       Serial.print("[cells]:");
@@ -152,11 +156,17 @@ void Radio::rxparse(JsonObject& rx){
     // Change UD and XY
     if (compass!=NULL) Radio::changeXY(coordX,coordY,compass);
     if (ud!=NULL && compass!=NULL) Radio::changeUD(ud,coordX,coordY,compass);
+    // setup WiFi
+    if (wifirequest!=NULL) {
+        _isWIFI=wificonnection.wifiSetup(rx["ssid"],rx["pass"]);
+        multimedia.setWifi(_isWIFI);
+        mqttConnection();
+    }
     // Execut commands
     if (_length>0 && cells != NULL) {
       while (*commands) {
         if (DEBUG_R) {
-          Serial.print("dentro del while "); Serial.print(commands[0]); Serial.println(cells[0]);
+          Serial.print("While "); Serial.print(commands[0]); Serial.println(cells[0]);
         }
         //TODO check _lengthcells == _length, cells[0] if not defined it containts trash
         executCommands(commands[0], cells[0]);
@@ -301,6 +311,10 @@ void Radio::mqttConnection() {
     if (DEBUG_R) {
       Serial.print("MQTT connection");
     }
+    // root topic
+    _topic = _root + "/" + _idRobota;
+    // at the next loop try connected
+    _isMQTT = true;
     client.setServer(mqtt_server, mqtt_port);
     client.setCallback([&](char* topic, byte* payload, unsigned int length) {
       // ¿out of board?
@@ -372,11 +386,11 @@ void Radio::reconnect() {
 /**
  * loop websocket server and update ui display
  */
-void Radio::loop(bool isMQTT) {
+void Radio::loop() {
    // websocket loop
    webSocket.loop();
    // mqtt loop
-   if (isMQTT) {
+   if (_isMQTT) {
      if (!client.connected()) {
        reconnect();
      }
@@ -388,7 +402,7 @@ void Radio::loop(bool isMQTT) {
 /**
   *  send a broadcast, before must create JSON
   */
-void Radio::broadcast(String msg, bool isMQTT){
+void Radio::broadcast(String msg){
   multimedia.display_heart(true);
   multimedia.display_update();
   String JSONtoString;
@@ -401,7 +415,7 @@ void Radio::broadcast(String msg, bool isMQTT){
   objectJSON.printTo(JSONtoString);
   // send websocket broadcast
   webSocket.broadcastTXT(JSONtoString);
-  if (isMQTT) {
+  if (_isMQTT) {
       // publish mqtt
       String topic_state = _topic + "/state";
       client.publish(topic_state.c_str(), JSONtoString.c_str());
@@ -415,7 +429,7 @@ void Radio::broadcast(String msg, bool isMQTT){
  * @param num id of client
  * @param msg string with information
  */
-void Radio::send(String msg, bool isMQTT){
+void Radio::send(String msg){
   String JSONtoString;
   // JSON object
   StaticJsonBuffer<200> jsonBuffer;
@@ -427,7 +441,7 @@ void Radio::send(String msg, bool isMQTT){
   // send ws message
   webSocket.broadcastTXT(JSONtoString);
   // send mqtt message
-  if (isMQTT) {
+  if (_isMQTT) {
       client.publish(_topic.c_str(), JSONtoString.c_str());
   }
 }
