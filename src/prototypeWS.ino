@@ -38,30 +38,11 @@ void setup () {
   pinMode(LED_BUILTIN,OUTPUT);
   pinMode(D4,OUTPUT);
 
-  // init websocket server TODO and MQTT if wifi connected
+  // init websocket server and MQTT if wifi connected
   radio.init();
 }
 
-long lastMsg = millis();
-int value = 0;
-
 void loop() {
-  String msg;
+  // websocket and mqtt loop
   radio.loop();
-  long now = millis();
-  if (now - lastMsg > 5000) {
-    lastMsg = now;
-    ++value;
-    msg = "ON ";
-    msg += value;
-    if (radio._isWIFI) msg+=",wifi ok";
-    if (radio._isMQTT) msg+=",mqtt ok";
-    // keep alive, server to everybody
-    radio.broadcast(msg);
-    /*
-    if (WiFi.status() != WL_CONNECTED) {
-      if (DEBUG_W) Serial.println("No WIFI");
-  }*/
-  }
-
 }

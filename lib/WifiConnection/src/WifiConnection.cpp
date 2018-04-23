@@ -41,9 +41,8 @@ bool WifiConnection::wifiSetup(const char * ssid, const char * pass){
     Serial.println("\n\tConnecting to Wi-Fi");
     Serial.println(ssid);
     Serial.println(pass);
+    WiFi.disconnect();
     WiFi.begin(ssid, pass);
-    byte tray =0;
-    bool success = false;
     int connRes = WiFi.waitForConnectResult();
     if (connRes != WL_CONNECTED) {
         Serial.println("[WiFi] Connection failed");

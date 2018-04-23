@@ -176,7 +176,6 @@ void Radio::rxparse(JsonObject& rx){
       }
     }
 }
-
 void Radio::changeXY(int x, int y, const char* compass) {
     if (DEBUG_R) {
         Serial.println("Change XY,compass");
@@ -189,7 +188,6 @@ void Radio::changeXY(int x, int y, const char* compass) {
     char stop = 'S';
     executCommands(stop, 'W');
 }
-
 void Radio::changeUD(const char* ud, int x, int y, const char* compass) {
   String _ud = (String) ud;
   multimedia.display_ud(_ud);
@@ -209,7 +207,7 @@ void Radio::executCommands(char command, char cell){
   // ¿out of board?
   bool in;
   // send feedback
-  bool feedback = true;
+  //bool feedback = true;
      if (DEBUG_R) {
        Serial.print("Execut Command:");
        Serial.print((String)command);
@@ -250,7 +248,7 @@ void Radio::executCommands(char command, char cell){
         multimedia.led(LED_S, ON);
         break;
       default :
-        feedback = false;
+        //feedback = false;
         break;
     } // switch
     // display info
@@ -268,7 +266,7 @@ void Radio::executCommands(char command, char cell){
       }
     }
   // send coord to client ws and mqtt
-  if (feedback) executing(command,motors.getX(),motors.getY(),motors.getCardinal());
+  executing(command,motors.getX(),motors.getY(),motors.getCardinal());
   // stop robota anyway after executing
   motors.stop();
 }
@@ -303,23 +301,17 @@ void Radio::executing(char comando, int X, int Y, char compass){
       client.publish(topic_executing.c_str(), buffer, true);
   }
 }
-
 /**
  * Mode MQTT
  */
 void Radio::mqttConnection() {
     if (DEBUG_R) {
-      Serial.print("MQTT connection");
+      Serial.println("MQTT setup connection");
     }
     // root topic
     _topic = _root + "/" + _idRobota;
-    // at the next loop try connected
-    _isMQTT = true;
     client.setServer(mqtt_server, mqtt_port);
     client.setCallback([&](char* topic, byte* payload, unsigned int length) {
-      // ¿out of board?
-      bool in;
-      bool feedback = true;
       int lengthMQTT = 0;
       // In order to republish or use this payload, a copy must be made
       // as the orignal payload buffer will be overwritten whilst
@@ -359,8 +351,7 @@ void Radio::mqttConnection() {
  * reconnect with MQTT broker
  */
 void Radio::reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
+    // Connect to broker
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
     if (client.connect(_idRobota.c_str())) {
@@ -377,27 +368,41 @@ void Radio::reconnect() {
       Serial.print("Failed MQTT connection, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
       _isMQTT = false;
     }
-  }
 }
 /**
  * loop websocket server and update ui display
  */
 void Radio::loop() {
+   String msg;
    // websocket loop
    webSocket.loop();
-   // mqtt loop
-   if (_isMQTT) {
-     if (!client.connected()) {
-       reconnect();
-     }
-     client.loop();
-   }
+
    // refresh display
    multimedia.display_update();
+
+   long now = millis();
+   if (now - lastMsg > 5000) {
+       // mqtt loop
+       if (_isWIFI) {
+            if (!client.connected()) {
+               reconnect();
+               if (!_isMQTT) lastMsg = 0;
+            } else {
+               client.loop();
+            }
+       }
+       // broadcast message
+       lastMsg = now;
+       ++value;
+       msg = "ON ";
+       msg += value;
+       if (_isWIFI) msg+=",wifi ok";
+       if (_isMQTT && _isWIFI) msg+=",mqtt ok";
+       // keep alive, server to everybody
+       broadcast(msg);
+   }
  }
 /**
   *  send a broadcast, before must create JSON

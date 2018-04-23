@@ -49,6 +49,10 @@ class Radio {
      // wifi and mqtt state
      bool _isMQTT = false;
      bool _isWIFI = false;
+     // control time in the loop
+     long lastMsg = millis();
+     // keep alive
+     int value = 0;
    private:
      String _idRobota;
      String _root = "/gamesp";
