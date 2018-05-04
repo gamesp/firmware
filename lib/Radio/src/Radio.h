@@ -58,7 +58,7 @@ class Radio {
      // keep alive
      int value = 0;
      // actual version installed
-     const int iFW_VERSION = 210;
+     const int iFW_VERSION = 300;
    private:
      String _idRobota;
      String _root = "/gamesp";
