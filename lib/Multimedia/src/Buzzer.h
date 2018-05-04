@@ -23,6 +23,7 @@ See LICENSE.txt for details
 #define RTTL_FIDO ":d=16,o=6,b=800:f,4p,f,4p,f,4p,f,4p,c,4p,c,4p,c,4p,c"
 #define RTTL_MOSAIC ":d=8,o=6,b=400:c,e,g,e,c,g,e,g,e,c"
 #define RTTL_WELCOME ":d=16,o=7,b=125:e,d#,e,d#,e,b#"
+#define RTTL_DISGUST ":d=4,o=5,b=160:8d#,8e,2p"
 
 #define BUZZER_BEEP_FREQUENCY 4699
 #define BUZZER_BEEP_MILLIS 100

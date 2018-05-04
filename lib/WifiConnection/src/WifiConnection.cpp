@@ -92,19 +92,15 @@ String WifiConnection::connectionStatus ( int which )
  * Mode AP
  */
 void WifiConnection::modeAP() {
-
-    Serial.print("AP:");
-    Serial.println(_AP_NameString);
-
+  Serial.print("AP:");
+  Serial.println(_AP_NameString);
   // ssid, passwd (null for open wifi), channel, ssid_hidden (0 broadcast, 1 hidden), max_connection
   // only one client, only one connection
   WiFi.softAP(_AP_NameString, NULL, 1, 0, 1);
-
-    Serial.println("Access Point started");
-    Serial.print("Ip: ");
-    Serial.println(WiFi.softAPIP());
-
-  delay(500);
+  Serial.println("Access Point started");
+  Serial.print("Ip: ");
+  Serial.println(WiFi.softAPIP());
+  delay(200);
 }
 String WifiConnection::getSSID() {
   return _NameString;

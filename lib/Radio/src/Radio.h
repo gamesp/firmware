@@ -9,6 +9,9 @@
 #include "Motion.h"
 #include "Multimedia.h"
 #include "WifiConnection.h"
+// FOTA update
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
 
 // state of leds
 #define ON 1  // true
@@ -37,6 +40,7 @@ class Radio {
      void executCommands(char commands, char cell = 'A');
      void mqttConnection();
      void reconnect();
+     void checkUpdates();
 
      // listen websocket at port 81
      WebSocketsServer webSocket = WebSocketsServer(81);
@@ -53,6 +57,8 @@ class Radio {
      long lastMsg = millis();
      // keep alive
      int value = 0;
+     // actual version installed
+     const int iFW_VERSION = 210;
    private:
      String _idRobota;
      String _root = "/gamesp";

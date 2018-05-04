@@ -30,19 +30,23 @@
 #define WAIT 3 // cell W
 #define HOME 4 //cell H
 #define SLEEP 5 //cell Z
+#define UPDATE 6 // updates
+#define WIFISETUP 7 // setup wifi
 
 
 // info to display
 typedef struct _InfoDisplay {
-  String idRobotta="DOMOTTA-XXXX";
+  String idRobotta="????";
   int x=0;
   int y=0;
   char compass='N';
-  String ud="X";
+  String ud="?";
   String msg="";
   uint8_t state=0;
   bool heart = false;
   bool wifi = false;
+  String version = "?.?.?";
+  String newversion = "?.?.?";
 } InfoDisplay ;
 
 class Multimedia

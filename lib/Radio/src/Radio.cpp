@@ -65,7 +65,8 @@ void Radio::init() {
             if(DEBUG_R) {
               Serial.printf("[%u] Disconnected!\n", num);
             }
-            multimedia.display_update(HOME);
+            //multimedia.display_update(HOME);
+            //multimedia.buzzer_rttl(RTTL_DISGUST);
             break;
         case WStype_CONNECTED:
             // send message to client
@@ -110,7 +111,6 @@ void Radio::init() {
 /**
  * parse de JSON obect and call executCommands to execute commands
  * @param rx the JSON object received
- * @param num identified the websocket connection
  */
 void Radio::rxparse(JsonObject& rx){
     const char* commands;
@@ -121,6 +121,7 @@ void Radio::rxparse(JsonObject& rx){
     unsigned int _length = 0;
     unsigned int _lengthcells = 0;
     const char* wifirequest;
+    const char* update;
 
     commands = rx["commands"];
     ud = rx["UD"];
@@ -129,6 +130,8 @@ void Radio::rxparse(JsonObject& rx){
     coordY = rx["Y"];
     cells = rx["cells"];
     wifirequest = rx["wifi"];
+    // require ota update
+    update = rx["update"];
 
     // number of commands
     if (commands != NULL) _length = strlen(commands);
@@ -137,6 +140,8 @@ void Radio::rxparse(JsonObject& rx){
 
     if (DEBUG_R) {
       Serial.println("Parse......");
+      Serial.print("[update]:");
+      if (update!=NULL) Serial.println(update); else Serial.println("no update");
       Serial.print("[wifi]:");
       if (wifirequest!=NULL) Serial.println(wifirequest); else Serial.println("no setup wifi");
       Serial.print("[commands]:");
@@ -158,8 +163,24 @@ void Radio::rxparse(JsonObject& rx){
     if (ud!=NULL && compass!=NULL) Radio::changeUD(ud,coordX,coordY,compass);
     // setup WiFi
     if (wifirequest!=NULL) {
+        //don´t show information, only icon
+        multimedia.display_ud("Zleep");
+        multimedia.display_update(WIFISETUP);
         _isWIFI=wificonnection.wifiSetup(rx["ssid"],rx["pass"]);
         multimedia.setWifi(_isWIFI);
+        multimedia.display_ud("?");
+        if (_isWIFI) {
+            multimedia.display_update(SMILE);
+            multimedia.buzzer_rttl(RTTL_FIDO);
+            multimedia.led(LED_F,OFF);
+            multimedia.led(LED_B,OFF);
+            multimedia.led(LED_R,OFF);
+            multimedia.led(LED_L,OFF);
+            multimedia.led(LED_S,OFF);
+        } else {
+            multimedia.display_update(DISGUST);
+            multimedia.buzzer_rttl(RTTL_DISGUST);
+        }
         mqttConnection();
     }
     // Execut commands
@@ -175,6 +196,8 @@ void Radio::rxparse(JsonObject& rx){
         cells++;
       }
     }
+    // check updates
+    if (update != NULL && _isWIFI) checkUpdates();
 }
 void Radio::changeXY(int x, int y, const char* compass) {
     if (DEBUG_R) {
@@ -395,12 +418,18 @@ void Radio::loop() {
        }
        // broadcast message
        lastMsg = now;
+       //keep alive
        ++value;
        msg = "ON ";
        msg += value;
-       if (_isWIFI) msg+=",wifi ok";
+       //version
+       msg +=",v";
+       msg += iFW_VERSION;
+       // wifi state
+       if (_isWIFI) msg+=",wifi ok"; else msg+=",no wifi";
+       // mqtt state
        if (_isMQTT && _isWIFI) msg+=",mqtt ok";
-       // keep alive, server to everybody
+       // msg to everybody
        broadcast(msg);
    }
  }
@@ -450,3 +479,63 @@ void Radio::send(String msg){
       client.publish(_topic.c_str(), JSONtoString.c_str());
   }
 }
+/**
+ * Check for update via OTA
+ */
+void Radio::checkUpdates() {
+     // display update Mode
+     //don´t show information, only icon
+     multimedia.display_ud("Zleep");
+     multimedia.display_update(UPDATE);
+     int major = iFW_VERSION/100;
+     int minor = (iFW_VERSION%100)/10;
+     int revision = (iFW_VERSION%100)%10;
+     String sFW_VERSION = String(major) + '.' + String(minor) + '.' + String(revision);
+     const char* firmwareUrl = "http://gamesp.danielcastelao.org/versions/firmware.bin";
+     const char* versionUrl = "http://gamesp.danielcastelao.org/versions/version.txt";
+     HTTPClient httpClient;
+     Serial.println( "Checking for firmware updates." );
+     httpClient.begin( versionUrl );
+     int httpCode = httpClient.GET();
+     Serial.print("Http Code: ");
+     Serial.println(httpCode);
+     // if status OK
+     if( httpCode == 200 ) {
+          String snewFW_VERSION = httpClient.getString();
+          int inewFW_VERSION = snewFW_VERSION.toInt();
+          major = inewFW_VERSION/100;
+          minor = (inewFW_VERSION%100)/10;
+          revision = (inewFW_VERSION%100)%10;
+          snewFW_VERSION = String(major) + '.' + String(minor) + '.' + String(revision);
+          Serial.print( "Current firmware version: " );
+          Serial.println( iFW_VERSION );
+          Serial.print( "Available firmware version: " );
+          Serial.println( inewFW_VERSION );
+
+          if( inewFW_VERSION > iFW_VERSION ) {
+              String _update = sFW_VERSION + String(">") + snewFW_VERSION;
+              multimedia.display_ud(_update);
+              Serial.println( "Preparing to update." );
+              t_httpUpdate_return ret = ESPhttpUpdate.update( firmwareUrl );
+              //t_httpUpdate_return ret = HTTP_UPDATE_OK;
+              switch (ret) {
+                  case HTTP_UPDATE_FAILED:
+                    Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+                    //check = false;
+                    break;
+                  case HTTP_UPDATE_NO_UPDATES:
+                    Serial.println("HTTP_UPDATE_NO_UPDATES");
+                    break;
+                 case HTTP_UPDATE_OK:
+                    Serial.println("HTTP_UPDATE_OK");
+                    break;
+            }
+        } else {
+            Serial.println( "Nothing to update." );
+            multimedia.display_ud("?");
+            multimedia.display_update(DISGUST);
+            multimedia.buzzer_rttl(RTTL_DISGUST);
+        }
+      }
+      httpClient.end();
+ }

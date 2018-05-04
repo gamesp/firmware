@@ -27,6 +27,9 @@ See LICENSE.txt for details
 #include "sleep.h"
 #include "heart.h"
 #include "heartbum.h"
+#include "update.h"
+#include "wifi18.h"
+#include "wifi55.h"
 
 // Debug multimedia
 #define DEBUG_MU 1
@@ -130,8 +133,9 @@ void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
     if (myInfo.heart) display->drawXbm(110, 40, heartbum_width, heartbum_height, heartbum_bits);
     // display mac macAddress
     display->setTextAlignment(TEXT_ALIGN_LEFT);
+    //display->drawString(0, 36, myInfo.version);
     display->drawString(0, 48, myInfo.idRobotta);
-    display->drawString(0, 24, myInfo.wifi?"Wifi":"Wifi no");
+    if (myInfo.wifi) display->drawXbm(110, 19, wifi18_width, wifi18_height, wifi18_bits);
   } else {
     display->setContrast('0');
   }
@@ -167,13 +171,21 @@ void drawSleep(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16
   // draw an xbm image.
   display->drawXbm(32, 0, sleep_width, sleep_height, sleep_bits);
 }
+// frame 6 - UPDATE
+void drawUpdate(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+  display->drawXbm(32, 0, update_width, update_height, update_bits);
+}
+// frame 7 - WIFI
+void drawWifi(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+  display->drawXbm(36, 0, wifi55_width, wifi55_height, wifi55_bits);
+}
 
 // This array keeps function pointers to all frames
 // frames are the single views that slide in
-FrameCallback frames[]={drawFrameSmile, drawFrameDisgust, drawFrameOK, drawFrameWait, drawFrameHome, drawSleep};
+FrameCallback frames[]={drawFrameSmile, drawFrameDisgust, drawFrameOK, drawFrameWait, drawFrameHome, drawSleep, drawUpdate, drawWifi};
 
 // how many frames are there?
-int frameCount = 6;
+int frameCount = 8;
 
 // Overlays are statically drawn on top of a frame eg. a clock
 OverlayCallback overlays[]={msOverlay};
