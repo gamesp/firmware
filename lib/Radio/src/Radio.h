@@ -58,13 +58,14 @@ class Radio {
      // keep alive
      int value = 0;
      // actual version installed
-     const int iFW_VERSION = 300;
+     const int iFW_VERSION = 310;
    private:
      String _idRobota;
      String _root = "/gamesp";
      // Array of states
      char _cell_state[6] = {'A','X','O','W','H','Z'};
      // attemps to reconnect WiFi and MQTT
+     // TODO use to attemps to reconnect
      uint8_t attemptsWifi = 3;
      uint8_t attemptsMQTT = 3;
      // sound notice when no MQTT

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v3.1.0
+- Only one led (Fix #9 issue)
+- Change motors position (Fix #12 issue)
+
 ## v3.0.0
 - Setup wifi via commands
 - Update via OTA
