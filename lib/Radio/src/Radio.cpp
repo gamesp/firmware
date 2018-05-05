@@ -33,6 +33,8 @@ PubSubClient client(espClient);
  * @param isMQTT if true then init connection to broker MQTT
  */
 void Radio::init() {
+    //turn off all leds
+    multimedia.turnOFF();
   // stop motor reset output
   motors.stop();
   //start AP
@@ -72,16 +74,8 @@ void Radio::init() {
             // send message to client
             Radio::send("connected");
             multimedia.display_update(SMILE);
-            multimedia.movingLEDs(CRGB::Green);
-            multimedia.movingLEDs(CRGB::DarkCyan);
-            //multimedia.movingLEDs(CRGB::Green);
-            //multimedia.movingLEDs(CRGB::DarkCyan);
             multimedia.buzzer_rttl(RTTL_FIDO);
-            multimedia.led(LED_F,OFF);
-            multimedia.led(LED_B,OFF);
-            multimedia.led(LED_R,OFF);
-            multimedia.led(LED_L,OFF);
-            multimedia.led(LED_S,OFF);
+            multimedia.movingLEDs();
             break;
         case WStype_TEXT:
             // In order to republish or use this payload, a copy must be made
@@ -172,14 +166,11 @@ void Radio::rxparse(JsonObject& rx){
         if (_isWIFI) {
             multimedia.display_update(SMILE);
             multimedia.buzzer_rttl(RTTL_FIDO);
-            multimedia.led(LED_F,OFF);
-            multimedia.led(LED_B,OFF);
-            multimedia.led(LED_R,OFF);
-            multimedia.led(LED_L,OFF);
-            multimedia.led(LED_S,OFF);
+            multimedia.movingLEDs();
         } else {
             multimedia.display_update(DISGUST);
             multimedia.buzzer_rttl(RTTL_DISGUST);
+            multimedia.led(LED_B, ON);
         }
         mqttConnection();
     }

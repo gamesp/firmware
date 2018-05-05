@@ -68,11 +68,11 @@ Multimedia::Multimedia(){
  */
 void Multimedia::led(uint8_t ledNumber, uint8_t stateON) {
   if (stateON) {
-    _leds[ledNumber] = _commandsColor[ledNumber];
+      //always first led
+    _leds[0] = _colors[ledNumber];
     FastLED.show();
   } else {
-    _leds[ledNumber] = CRGB::Black;
-    FastLED.show();
+      turnOFF();
   }
 }
 /**
@@ -81,32 +81,23 @@ void Multimedia::led(uint8_t ledNumber, uint8_t stateON) {
 void Multimedia::turnOFF() {
   fill_solid(_leds, NUM_LEDS, CRGB::Black);
   FastLED.show();
-  // blue led off
-  digitalWrite(D4, HIGH);
 }
 /**
  * move leds
  */
-void Multimedia::movingLEDs(CRGB color) {
-  for(int dot = 0; dot < NUM_LEDS; dot++) {
-    _leds[dot] = color;
+void Multimedia::movingLEDs() {
+  for(int dot = 0; dot < 4; dot++) {
+    _leds[0] = _colors[dot];
+    delay(200);
     FastLED.show();
-    // clear this led for the next time around the loop
-    _leds[dot] = CRGB::Black;
-    delay(100);
   }
+  turnOFF();
 }
-void Multimedia::sleep(CRGB color) {
+void Multimedia::sleep() {
   Serial.println("Sleep");
-  float value;
-  // fade in
-  for(int cycle = 100; cycle > 0; cycle--) {
-    delay(25);
-    value = 255*cos(PI*(((float)cycle*45/100)+45)/180);
-    fill_solid(_leds, NUM_LEDS, color);
-    FastLED.setBrightness((int) value);
-    FastLED.show();
-  }
+  // purple color
+  _leds[0] = CHSV( HUE_PURPLE, 255, 255);
+  FastLED.show();
 }
 
 void msOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
@@ -238,19 +229,16 @@ void Multimedia::display_heart(bool bum) {
   myInfo.heart = bum;
   if (!myInfo.ud.equals("Zleep")){
     if (bum) {
-      //multimedia.led(LED_S, ON);
       digitalWrite(LED_BUILTIN,LOW);
     } else {
-      // both blue leds off
+      //blue led off
       digitalWrite(LED_BUILTIN,HIGH);
-      digitalWrite(D4, HIGH);
     }
   } else {
     // mode sleep
     display_update(SLEEP);
-    // both blue leds off
+    // blue led off
     digitalWrite(LED_BUILTIN,HIGH);
-    digitalWrite(D4, HIGH);
   }
   display_update();
 }

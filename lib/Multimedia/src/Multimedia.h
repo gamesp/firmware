@@ -21,7 +21,7 @@
 // this strip change de default order RGB to GRB
 #define COLOR_ORDER GRB
 // default brightness
-#define MAX_BRIGHTNESS 16
+#define MAX_BRIGHTNESS 64
 
 // the frames to display
 #define SMILE 0 // cell A
@@ -58,8 +58,8 @@ public:
   Multimedia();
   void led(uint8_t index, uint8_t state);
   void turnOFF();
-  void movingLEDs(CRGB color);
-  void sleep(CRGB color);
+  void movingLEDs();
+  void sleep();
   void display_init(String ssid);
   void display_update();
   void display_update(uint8_t state);
@@ -76,7 +76,7 @@ private:
   // array of total leds
   CRGB _leds[NUM_LEDS];
   // different colour per commands
-  CRGB _commandsColor[5] = {CRGB::Green,CRGB::Orange,CRGB::Green,CRGB::Orange,CRGB::Blue};
+  CRGB _colors[5] = {CRGB::Green,CRGB::Gray,CRGB::Red,CRGB::Yellow,CRGB::Blue};
 };
 
 #endif // _MULTIMEDIA_H
