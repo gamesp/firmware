@@ -56,6 +56,20 @@ bool WifiConnection::wifiSetup(const char * ssid, const char * pass){
     }
 }
 
+bool WifiConnection::wifiDebug(){
+    int connRes = WiFi.waitForConnectResult();
+    if (connRes != WL_CONNECTED) {
+        if (DEBUG_W) {
+            Serial.print("[WiFi debug] ");
+            Serial.println(connectionStatus( WiFi.status() ).c_str() );
+        }
+        return false;
+    } else {
+        if (DEBUG_W) Serial.println("[WiFi debug] Connected");
+        return true;
+    }
+}
+
 /********************************************************
 /*  WiFi Connection Status                              *
 /********************************************************/

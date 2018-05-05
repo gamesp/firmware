@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 // Debug wifi connection
-#define DEBUG_W 1
+#define DEBUG_W 0
 
 class WifiConnection {
   public:
@@ -20,6 +20,7 @@ class WifiConnection {
       */
      void modeAP();
      bool wifiSetup(const char * ssid, const char * pass);
+     bool wifiDebug();
      String connectionStatus (int which);
      /**
       * return ssid, the same to id of robota

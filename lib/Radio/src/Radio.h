@@ -64,6 +64,12 @@ class Radio {
      String _root = "/gamesp";
      // Array of states
      char _cell_state[6] = {'A','X','O','W','H','Z'};
+     // attemps to reconnect WiFi and MQTT
+     uint8_t attemptsWifi = 3;
+     uint8_t attemptsMQTT = 3;
+     // sound notice when no MQTT
+     bool noticeMQTT = false;
+
 };
 
 #endif // _RADIO_H
