@@ -384,6 +384,8 @@ void Radio::reconnect() {
       multimedia.movingLEDs();
       multimedia.display_ud("?");
     } else {
+      //multimedia.display_update(DISGUST);
+      //multimedia.display_ud("?");
       Serial.print("Failed MQTT connection, rc=");
       Serial.println(client.state());
       Serial.print(" try again in 5 scs, attemps:");
@@ -408,15 +410,16 @@ void Radio::loop() {
            //Serial.print("Mqtt state: ");
            //Serial.println(client.state());
             //if not connect init server
-            if (client.state()) mqttConnection();
+            //if (client.state()) mqttConnection();
             if (!client.connected()) {
+               if (client.state()) mqttConnection();
                _isMQTT = false;
-               if (attemptsMQTT>0) reconnect();
+               reconnect();
                lastMsg = 0;
-               if (attemptsMQTT=0) {
+               /*if (attemptsMQTT=0) {
                    multimedia.buzzer_rttl(RTTL_DISGUST);
                    multimedia.led(LED_B, ON);
-               }
+               }*/
             } else {
                client.loop();
             }
@@ -427,15 +430,17 @@ void Radio::loop() {
        lastMsg = now;
        //keep alive
        ++value;
-       msg = "ON ";
+       msg = "{ON:";
        msg += value;
        //version
-       msg +=",v";
+       msg +=",v:";
        msg += iFW_VERSION;
        // wifi state
-       if (_isWIFI) msg+=",wifi ok"; else msg+=",no wifi";
+       if (_isWIFI) msg+=",wifi:ok"; else msg+=",wifi:off";
        // mqtt state
-       if (_isMQTT && _isWIFI) msg+=",mqtt ok";
+       if (_isMQTT && _isWIFI) msg+=",mqtt:ok"; else msg+=",mqtt:off";
+       // finish
+       msg += "}";
        // msg to everybody
        broadcast(msg);
        multimedia.setWifi(_isMQTT);
