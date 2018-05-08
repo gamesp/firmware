@@ -50,15 +50,16 @@ class Radio {
      Motion motors;
      // Sound and lights
      Multimedia multimedia;
-     // wifi and mqtt state
+     // wifi, mqtt and setup state
      bool _isMQTT = false;
      bool _isWIFI = false;
+     bool _isSETUP = false;
      // control time in the loop
      long lastMsg = millis();
      // keep alive
      int value = 0;
      // actual version installed
-     const int iFW_VERSION = 310;
+     const int iFW_VERSION = 311;
    private:
      String _idRobota;
      String _root = "/gamesp";

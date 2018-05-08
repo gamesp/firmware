@@ -24,6 +24,8 @@ See LICENSE.txt for details
 WifiConnection::WifiConnection() {
     WiFi.mode(WIFI_OFF);
     WiFi.mode(WIFI_AP_STA);
+    // reset ssid saved
+    WiFi.disconnect();
     // take mac address
     WiFi.macAddress(_mac);
     // append the two final hex of mac

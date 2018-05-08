@@ -67,8 +67,10 @@ void Radio::init() {
             if(DEBUG_R) {
               Serial.printf("[%u] Disconnected!\n", num);
             }
-            //multimedia.display_update(HOME);
-            //multimedia.buzzer_rttl(RTTL_DISGUST);
+            multimedia.display_update(DISGUST);
+            //multimedia.display_ud("?");
+            multimedia.buzzer_rttl(RTTL_DISGUST);
+            multimedia.led(LED_B, ON);
             break;
         case WStype_CONNECTED:
             // send message to client
@@ -171,8 +173,10 @@ void Radio::rxparse(JsonObject& rx){
             multimedia.led(LED_B, ON);
             delay(1000);
             multimedia.display_ud("?");
+        } else {
+            mqttConnection();
         }
-        mqttConnection();
+
     }
     // Execut commands
     if (_length>0 && cells != NULL) {
@@ -384,47 +388,49 @@ void Radio::reconnect() {
       multimedia.movingLEDs();
       multimedia.display_ud("?");
     } else {
-      //multimedia.display_update(DISGUST);
-      //multimedia.display_ud("?");
       Serial.print("Failed MQTT connection, rc=");
       Serial.println(client.state());
       Serial.print(" try again in 5 scs, attemps:");
       Serial.println(attemptsMQTT);
       _isMQTT = false;
-      attemptsMQTT--;
-    }
+  }
 }
 /**
- * loop websocket server and update ui display
+ * loop websocket server and client mqtt
+ * update ui display
  */
 void Radio::loop() {
    String msg;
    // websocket loop
    webSocket.loop();
    long now = millis();
-   if (now - lastMsg > 5000) {
+   if (now - lastMsg > 2000) {
        // debug WiFi
        _isWIFI = wificonnection.wifiDebug();
-       // mqtt loop
+       // mqtt loop if wifi connected
        if (_isWIFI) {
-           //Serial.print("Mqtt state: ");
-           //Serial.println(client.state());
-            //if not connect init server
-            //if (client.state()) mqttConnection();
-            if (!client.connected()) {
-               if (client.state()) mqttConnection();
-               _isMQTT = false;
-               reconnect();
-               lastMsg = 0;
-               /*if (attemptsMQTT=0) {
-                   multimedia.buzzer_rttl(RTTL_DISGUST);
-                   multimedia.led(LED_B, ON);
-               }*/
+            if (!client.connected() && attemptsMQTT>0) {
+                // setup MQTT
+                _isSETUP = true;
+                Serial.print("Mqtt state: ");
+                Serial.print(client.state());
+                Serial.print(" Attempt: ");
+                Serial.println(attemptsMQTT);
+                // attempts 3,2,1
+                if (client.state()) mqttConnection();
+                _isMQTT = false;
+                reconnect();
+                lastMsg = 0;
+                attemptsMQTT--;
+            } else if (attemptsMQTT==0) {
+                // no more attemps
+                _isSETUP = false;
             } else {
-               client.loop();
+                // client mqtt connected
+                _isSETUP = false;
+                _isMQTT = true;
+                client.loop();
             }
-       } else {
-           _isMQTT = false;
        }
        // broadcast message
        lastMsg = now;
@@ -445,8 +451,8 @@ void Radio::loop() {
        broadcast(msg);
        multimedia.setWifi(_isMQTT);
    }
-   // refresh display
-   multimedia.display_update();
+   // refresh display if not setup wifi or mqtt
+   if (!_isSETUP) multimedia.display_update();
  }
 /**
   *  send a broadcast, before must create JSON
